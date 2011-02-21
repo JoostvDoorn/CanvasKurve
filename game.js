@@ -49,17 +49,20 @@ function CanvasKurve() {
 		this.LEFT = -1;
 		this.RIGHT = 1;
 		this.STRAIGHT = 0;
-		this.INTERVAL = 100/60;
+		this.INTERVAL = 1000/60;
 		
 		this.update = function() {
-			this.parent.ctxB.beginPath();
-			this.parent.ctxB.lineWidth = 4;
-			this.parent.ctxB.lineCap = "round";
-			this.parent.ctxB.moveTo(this.x, this.y);
-			this.x += this.SPEED*Math.cos(this.angle);
-			this.y += this.SPEED*Math.sin(this.angle);
-            this.parent.ctxB.lineTo(this.x, this.y);
-			this.parent.ctxB.stroke();
+			this.parent.ctxB.save();
+            this.parent.ctxB.beginPath();
+            this.parent.ctxB.lineWidth = 4;
+            this.parent.ctxB.lineCap = "round";
+            this.parent.ctxB.translate(this.x, this.y);
+            this.x += this.SPEED*Math.cos(this.angle);
+            this.y += this.SPEED*Math.sin(this.angle);
+			this.parent.ctxB.moveTo(0,0);
+            this.parent.ctxB.lineTo(this.SPEED*Math.cos(this.angle), this.SPEED*Math.sin(this.angle));
+            this.parent.ctxB.stroke();
+            this.parent.ctxB.restore();
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 		
