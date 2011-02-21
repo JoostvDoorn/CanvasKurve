@@ -44,12 +44,12 @@ function CanvasKurve() {
 	this.Snake = function(parent, left, right) {
 		
 		//Constants
-		this.SPEED = 1;
-		this.TURNING_SPEED = 1/40;
+		this.INTERVAL = 1000/60;
+		this.SPEED = 2/36*this.INTERVAL;
+		this.TURNING_SPEED = 1/1200*this.INTERVAL;
 		this.LEFT = -1;
 		this.RIGHT = 1;
 		this.STRAIGHT = 0;
-		this.INTERVAL = 1000/60;
 		
 		this.update = function() {
 			this.parent.ctxB.save();
@@ -65,8 +65,10 @@ function CanvasKurve() {
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 		
-		this.turn = function(direction) {
-			this.direction = direction;
+		this.turn = function(direction, old) {
+			if(this.direction == old || direction != this.STRAIGHT) {
+				this.direction = direction;
+			}
 		}
 		
 		this.registerKeys = function(left, right) {
@@ -78,10 +80,10 @@ function CanvasKurve() {
 				this.parent.inputUp[right] = new Array();
 				this.parent.inputDown[right] = new Array();
 			}
-			this.parent.inputDown[left][this.parent.inputDown[left].length] = this.turn.bind(this, this.LEFT);
-			this.parent.inputDown[right][this.parent.inputDown[right].length] = this.turn.bind(this, this.RIGHT);
-			this.parent.inputUp[left][this.parent.inputUp[left].length] = this.turn.bind(this, this.STRAIGHT);
-			this.parent.inputUp[right][this.parent.inputUp[right].length] = this.turn.bind(this, this.STRAIGHT);
+			this.parent.inputDown[left][this.parent.inputDown[left].length] = this.turn.bind(this, this.LEFT, this.STRAIGHT);
+			this.parent.inputDown[right][this.parent.inputDown[right].length] = this.turn.bind(this, this.RIGHT, this.STRAIGHT);
+			this.parent.inputUp[left][this.parent.inputUp[left].length] = this.turn.bind(this, this.STRAIGHT, this.LEFT);
+			this.parent.inputUp[right][this.parent.inputUp[right].length] = this.turn.bind(this, this.STRAIGHT, this.RIGHT);
 		}
 		
 		//Constructor
