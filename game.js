@@ -14,7 +14,6 @@ function init() {
 
 	ctx.fillStyle = "black";
 	
-	
 	drawTrans(ctx);
 	rotation = -10;
 	green = 0;
