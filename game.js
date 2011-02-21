@@ -44,12 +44,12 @@ function CanvasKurve() {
 	this.Snake = function(parent, left, right) {
 		
 		//Constants
-		this.SPEED = 0.4;
-		this.TURNING_SPEED = 1/120;
+		this.INTERVAL = 1000/60;
+		this.SPEED = 2/36*this.INTERVAL;
+		this.TURNING_SPEED = 1/1200*this.INTERVAL;
 		this.LEFT = -1;
 		this.RIGHT = 1;
 		this.STRAIGHT = 0;
-		this.INTERVAL = 1000/60;
 		
 		this.update = function() {
 			this.parent.ctxB.save();
