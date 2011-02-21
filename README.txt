@@ -1,0 +1,7 @@
+- calculate EffectiveSpeed using SPEED*60/FPS
+- calculate gaps using:
+	- GapSpacing = MinGapSpacing + Math.random() * (MaxGapSpacing - MinGapSpacing)
+	- countdown GapSpacing to 0
+	- set GapSpacing = -GapWidth
+	- increase GapSpacing to 0
+	- loop

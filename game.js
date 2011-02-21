@@ -53,7 +53,6 @@ function CanvasKurve() {
 		
 		this.update = function() {
 			this.parent.ctxB.save();
-            this.parent.ctxB.beginPath();
             this.parent.ctxB.lineWidth = 4;
             this.parent.ctxB.lineCap = "round";
             this.parent.ctxB.translate(this.x, this.y);
