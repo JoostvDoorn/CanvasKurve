@@ -23,9 +23,11 @@ function CanvasKurve() {
 	
 		this.update = function() {
 			this.parent.ctxB.beginPath();
-            this.parent.ctxB.lineTo(this.x, this.y);
-			this.parent.ctxB.lineTo(0, 0);
-			this.parent.ctxB.fill();
+			this.parent.ctxB.lineWidth = 4;
+			this.parent.ctxB.lineCap = "round";
+			this.parent.ctxB.moveTo(this.x, this.y);
+            this.parent.ctxB.lineTo(this.x+1, this.y+1);
+			this.parent.ctxB.stroke();
 			this.x++;
 			this.y++;
 		};
