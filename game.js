@@ -1,5 +1,7 @@
 var canvasKurve;
 function CanvasKurve() { 
+
+	
 	this.intervalID;
 	this.rotation;
 	this.green;
@@ -8,6 +10,8 @@ function CanvasKurve() {
 	this.ctx;
 	this.ctxB;
 	this.snakes = new Array();
+	//Stores the input references
+	this.input = new Array();
 	this.init = function() {
 		this.canvas = document.getElementById("canvas");
 		this.background = document.getElementById("background");
@@ -20,21 +24,32 @@ function CanvasKurve() {
 		this.snakes[this.snakes.length] = new this.Snake(this);
 	}
 	this.Snake = function(parent) {
-	
+		
+		//Constants
+		this.SPEED = 4;
+		this.TURNING_SPEED = 1/40;
+		
 		this.update = function() {
 			this.parent.ctxB.beginPath();
 			this.parent.ctxB.lineWidth = 4;
 			this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.moveTo(this.x, this.y);
-            this.parent.ctxB.lineTo(this.x+1, this.y+1);
+			this.x += this.SPEED*Math.sin(this.angle);
+			this.y += this.SPEED*Math.cos(this.angle);
+            this.parent.ctxB.lineTo(this.x, this.y);
 			this.parent.ctxB.stroke();
-			this.x++;
-			this.y++;
 		};
+		
+		this.turn = function(direction) {
+			this.angle += direction*this.TURNING_SPEED*Math.PI;
+		}
 	
+		//Constructor
 		this.angle = 0;
-		this.x = 0;
-		this.y = 0;
+		this.x = 10;
+		this.y = 10;
+		this.keyLeft = "A";
+		this.keyRight = "S";
 		this.parent = parent;
 		this.intervalID = window.setInterval(this.update.bind(this),1000/60);
 	};
