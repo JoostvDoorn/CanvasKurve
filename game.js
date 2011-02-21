@@ -35,12 +35,12 @@ function drawRot(ctx) {
 	drawTrans(ctx);
 	ctx.globalCompositeOperation = "xor";
 	ctx.lineJoin = "round";
-	//ctx.strokeStyle = rgb(0,green,0);
+	ctx.strokeStyle = 'rgb(0,' + green + ',0)';
 	ctx.lineWidth = 3.0;
 	ctx.translate(140,140);
 	ctx.rotate(rotation * Math.PI / 180);
 	rotation += 1;
-	//green = green + 1 % 256;
+	green = (green + 1) % 256;
 	ctx.beginPath();
 	ctx.lineTo(120, 120);
 	// was: ctx.quadraticCurveTo(60, 70, 70, 150); which is wrong.
