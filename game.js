@@ -58,7 +58,6 @@ function CanvasKurve() {
             this.parent.ctxB.translate(this.x, this.y);
             this.x += this.SPEED*Math.cos(this.angle);
             this.y += this.SPEED*Math.sin(this.angle);
-			this.parent.ctxB.moveTo(0,0);
             this.parent.ctxB.lineTo(this.SPEED*Math.cos(this.angle), this.SPEED*Math.sin(this.angle));
             this.parent.ctxB.stroke();
             this.parent.ctxB.restore();
