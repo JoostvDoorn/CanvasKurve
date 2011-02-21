@@ -21,6 +21,7 @@ function CanvasKurve() {
 
 		this.ctx.fillStyle = "black";
 		this.ctxB.fillStyle = "black";
+		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		
 		this.snakes[this.snakes.length] = new this.Snake(this, 37, 39);
 	}
@@ -44,24 +45,39 @@ function CanvasKurve() {
 	this.Snake = function(parent, left, right) {
 		
 		//Constants
-		this.INTERVAL = 1000/60;
+		this.FPS = 60;
+		this.INTERVAL = 1000/this.FPS;
 		this.SPEED = 2/36*this.INTERVAL;
 		this.TURNING_SPEED = 1/1200*this.INTERVAL;
 		this.LEFT = -1;
 		this.RIGHT = 1;
 		this.STRAIGHT = 0;
+		this.LINE_WIDTH = 4;
 		
 		this.update = function() {
 			this.parent.ctxB.save();
-            this.parent.ctxB.lineWidth = 4;
+            this.parent.ctxB.lineWidth = this.LINE_WIDTH;
             this.parent.ctxB.lineCap = "round";
+			this.parent.ctxB.strokeStyle= "red";
             this.parent.ctxB.translate(this.x, this.y);
             this.x += this.SPEED*Math.cos(this.angle);
             this.y += this.SPEED*Math.sin(this.angle);
             this.parent.ctxB.lineTo(this.SPEED*Math.cos(this.angle), this.SPEED*Math.sin(this.angle));
             this.parent.ctxB.stroke();
             this.parent.ctxB.restore();
+			this.updateDot();
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
+		};
+		
+		this.updateDot = function() {
+			this.parent.ctx.save();
+			this.parent.canvas.width = this.parent.canvas.width;
+			this.parent.ctx.fillStyle = "yellow";
+			this.parent.ctx.beginPath();
+			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 + .1,0,Math.PI*2,true);
+			this.parent.ctx.closePath();
+			this.parent.ctx.fill();
+			this.parent.ctx.restore();
 		};
 		
 		this.turn = function(direction, old) {

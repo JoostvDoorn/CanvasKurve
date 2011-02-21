@@ -1,3 +1,11 @@
 canvas {
 	position: absolute;
 }
+
+#canvas {
+	z-index:1;
+}
+
+#background {
+	z-index:0;
+}
