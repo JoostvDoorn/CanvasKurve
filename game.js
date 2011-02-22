@@ -25,9 +25,10 @@ var canvasKurve;
 function CanvasKurve() { 
 
 	//Constants
-	this.FPS = 60;
+	this.BORDER_WIDTH = 4;
+	this.FPS = 24;
 	this.INTERVAL = 1000/this.FPS;
-	this.SPEED = 3/36*this.INTERVAL;
+	this.SPEED = 2/36*this.INTERVAL;
 	this.TURNING_SPEED = 1/1200*this.INTERVAL;
 	this.LEFT = -1;
 	this.RIGHT = 1;
@@ -66,14 +67,36 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "yellow";
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		this.ctxB.fillStyle = "black";
-		var borderWidth = 4;
-		this.ctxB.fillRect(borderWidth,borderWidth,this.background.width-2*borderWidth,this.background.height-2*borderWidth);
+		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
+		
+		this.makeSolidBorder();
 		
 		this.addSnake(38, 40, 20, 30, 0, "green");
 		this.addSnake(65, 83, 180, 180, 10/9*Math.PI, "orange");
 		this.addSnake(37, 39, 85, 180, 0.6*Math.PI, "red");
 		
 		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
+	}
+	
+	this.makeSolidBorder = function() {
+		for(i = 0; i < this.BORDER_WIDTH; i++) {
+			for(j = 0; j < this.canvas.width; j++) {
+				this.makeSolidPoint(j,i);
+			}
+		}
+		for(i = this.BORDER_WIDTH; i < this.canvas.height - this.BORDER_WIDTH; i++) {
+			for(j = 0;j < this.BORDER_WIDTH; j++) {
+				this.makeSolidPoint(j,i);
+			}
+			for(j = this.canvas.width - this.BORDER_WIDTH; j < this.canvas.width; j++) {
+				this.makeSolidPoint(j,i);
+			}
+		}
+		for(i = this.canvas.height - this.BORDER_WIDTH; i < this.canvas.height; i++) {
+			for(j = 0; j < this.canvas.width; j++) {
+				this.makeSolidPoint(j,i);
+			}
+		}
 	}
 	
 	this.addSnake = function(keyLeft, keyRight, x, y, angle, color) {
@@ -116,11 +139,7 @@ function CanvasKurve() {
 			for(i = -this.COL_DISTANCE; i <= this.COL_DISTANCE; i++) {
 				otherX = parseInt(x + i*Math.cos(angleWidth) + k*Math.cos(angle));
 				otherY =  parseInt(y + i*Math.sin(angleWidth) + k*Math.sin(angle));
-				
-				this.ctxB.save();
-				this.ctxB.fillStyle = "pink";
-				this.ctxB.fillRect(otherX, otherY, 1, 1);
-				this.ctxB.restore();
+
 				this.makeSolidPoint(otherX, otherY);
 			}
 		}
@@ -133,7 +152,15 @@ function CanvasKurve() {
 		if(this.solid[x] == undefined) {
 			this.solid[x] = new Array();
 		}
+		//this.paintPink(x,y);
 		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
+	}
+	
+	this.paintPink = function(x,y) {
+		this.ctxB.save();
+		this.ctxB.fillStyle = "pink";
+		this.ctxB.fillRect(x, y, 1, 1);
+		this.ctxB.restore();
 	}
 	
 	this.Snake = function(parent, left, right, x, y, angle, color) {
