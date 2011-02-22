@@ -111,11 +111,18 @@ function CanvasKurve() {
 		newY = parseInt(y + difY);
 		intX = parseInt(x);
 		intY = parseInt(y);
-		angle = angle + 1/2*Math.PI;
-		for(i = -this.COL_DISTANCE; i <= this.COL_DISTANCE; i++) {
-			otherX = parseInt(x + i*Math.cos(angle));
-			otherY =  parseInt(y + i*Math.sin(angle));
-			this.makeSolidPoint(otherX, otherY);
+		angleWidth = angle + 1/2*Math.PI;
+		for(k = -this.SPEED; k <= 0; k++) {
+			for(i = -this.COL_DISTANCE; i <= this.COL_DISTANCE; i++) {
+				otherX = parseInt(x + i*Math.cos(angleWidth) + k*Math.cos(angle));
+				otherY =  parseInt(y + i*Math.sin(angleWidth) + k*Math.sin(angle));
+				
+				this.ctxB.save();
+				this.ctxB.fillStyle = "pink";
+				this.ctxB.fillRect(otherX, otherY, 1, 1);
+				this.ctxB.restore();
+				this.makeSolidPoint(otherX, otherY);
+			}
 		}
 		return (intX == newX && intY == newY) ? true : this.makeSolidPoint(newX, newY); //Placeholder
 	}
@@ -155,6 +162,12 @@ function CanvasKurve() {
 			if(!this.isGap) {
 					this.drawSnake();
 			}
+			if(!this.isGap) {
+				if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false) {
+					clearInterval(this.intervalID);
+					//TODO: register loser
+				}
+			}
 			this.x += this.difx; this.y += this.dify;
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
@@ -170,9 +183,6 @@ function CanvasKurve() {
 			this.parent.ctxB.closePath();
 			this.parent.ctxB.stroke();
 			this.parent.ctxB.restore();
-			if(this.parent.makeSolid(this.x, this.y, this.difx, this.dify, this.angle) == false) {
-				clearInterval(this.intervalID);
-			}
 		};
 			
 		this.drawDot = function() {
