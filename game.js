@@ -55,10 +55,14 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "black";
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		
-		this.snakes[this.snakes.length] = new this.Snake(this, 37, 39, 10, 10);
-		this.snakes[this.snakes.length] = new this.Snake(this, 38, 40, 20, 30);
+		this.addSnake(38, 40, 20, 30, 0, "green");
+		this.addSnake(39, 41, 80, 80, 0.6*Math.PI, "red");
 		
 		this.intervalID = window.setInterval(this.updateDots.bind(this), this.INTERVAL);
+	}
+	
+	this.addSnake = function(keyLeft, keyRight, x, y, angle, color) {
+		this.snakes[this.snakes.length] = new this.Snake(this, keyLeft, keyRight, x, y, angle, color);
 	}
 	
 	this.keyDown = function(e) {
@@ -84,7 +88,7 @@ function CanvasKurve() {
 		}
 	}
 	
-	this.Snake = function(parent, left, right, x, y) {
+	this.Snake = function(parent, left, right, x, y, angle, color) {
 	
 		this.parent = parent;
 		
@@ -104,7 +108,7 @@ function CanvasKurve() {
 			this.parent.ctxB.beginPath();
             this.parent.ctxB.lineWidth = this.LINE_WIDTH;
             this.parent.ctxB.lineCap = "round";
-			this.parent.ctxB.strokeStyle= "red";
+			this.parent.ctxB.strokeStyle= this.color;
             this.parent.ctxB.moveTo(this.x, this.y);
             var difx = this.SPEED*Math.cos(this.angle);
             var dify = this.SPEED*Math.sin(this.angle);
@@ -148,10 +152,11 @@ function CanvasKurve() {
 		}
 		
 		//Constructor
-		this.angle = 0;
+		this.angle = angle;
 		this.x = x;
 		this.y = y;
 		this.direction = 0;
+		this.color = color;
 		this.registerKeys(left, right);
 		this.intervalID = window.setInterval(this.update.bind(this), this.INTERVAL);
 	};
