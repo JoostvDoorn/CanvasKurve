@@ -1,11 +1,6 @@
-canvas {
-	position: absolute;
+/*game size*/#canvas-container{	width:600px;	height:600px;
+}/*canvas container & two canvasses*/#canvas-container{	position:relative;}
+#canvas{	position: absolute;	top:0;	left:0;
 }
-
-#canvas {
-	z-index:1;
-}
-
-#background {
-	z-index:0;
-}
+#background{	
+}/*website*/html {font-size:100.01%;}body {margin:10px 0;font-size:75%;color:#FFF;background:#999;font-family:"Helvetica Neue", Arial, Helvetica, sans-serif;}.clear{clear:both;}#container{	width:750px;	margin:0 auto;	background-color:#262626;	padding:50px;	-moz-border-radius:20px;	border-radius:20px;}#main{	float:left;}#banner{	width:600px;	height:110px;	}#menu{	font-size:14px;	width:600px;	height:30px;	background:#363636;	-moz-border-radius:0 0 10px 10px;	border-radius:0 0 10px 10px;}#menu ul{	margin:0 10px;	padding:0;	list-style:none;}#menu li{	float:left;}#menu a{	padding:7px;	display:block;	color:#FFF;	text-decoration:none;	font-weight:bold;}/*for hover go to #new-game*/#side-bar{	float:right;}#new-game{	height:110px;	width:150px;}#new-game button{	-moz-border-radius:10px;	border-radius:10px;	height:100px;	width:140px;	padding:0;	border:none;	margin:5px;	color:#FFF;	font-size:22px;	font-weight:bold;	background-color:#464646;}#new-game button:focus, #new-game button:hover, #menu a:hover, #menu a:focus{	background:#353535;	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#555555', endColorstr='#222222');	background:-webkit-gradient(linear, left top, left bottom, from(#555), to(#222));	background:-moz-linear-gradient(top, #555, #222);}#new-game button:active, #menu a:active{	background:#252525;	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#222222', endColorstr='#555555');	background:-webkit-gradient(linear, left top, left bottom, from(#222), to(#555));	background:-moz-linear-gradient(top, #222, #555);}#game-bar{	height:580px;	width:130px;	padding:10px;	background-color:#363636;	-moz-border-radius:0 10px 10px 0;	border-radius:0 10px 10px 0;}#game-bar h2{	text-align:center;	margin:0;}#score-table{	width:130px;	font-size:14px;	font-weight:bold;}#score-table td:last-child{	text-align:right;}#copyright{	text-align:center;	height:30px;	line-height:30px;}

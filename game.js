@@ -25,7 +25,7 @@ var canvasKurve;
 function CanvasKurve() { 
 
 	//Constants
-	this.BORDER_WIDTH = 4;
+	this.BORDER_WIDTH = 8;
 	this.FPS = 24;
 	this.INTERVAL = 1000/this.FPS;
 	this.SPEED = 2/36*this.INTERVAL;
@@ -69,7 +69,7 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "black";
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
-		this.makeSolidBorder();
+		//this.makeSolidBorder();
 		
 		this.addSnake(38, 40, 20, 30, 0, "green");
 		this.addSnake(65, 83, 180, 180, 10/9*Math.PI, "orange");
@@ -78,26 +78,29 @@ function CanvasKurve() {
 		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
 	}
 	
+	/* ROMMEL
 	this.makeSolidBorder = function() {
-		for(i = 0; i < this.BORDER_WIDTH; i++) {
+		var extraWideBorder = 3;
+		for(i = 0; i < this.BORDER_WIDTH + extraWideBorder; i++) {
 			for(j = 0; j < this.canvas.width; j++) {
 				this.makeSolidPoint(j,i);
 			}
 		}
-		for(i = this.BORDER_WIDTH; i < this.canvas.height - this.BORDER_WIDTH; i++) {
-			for(j = 0;j < this.BORDER_WIDTH; j++) {
+		for(i = this.BORDER_WIDTH + extraWideBorder; i < this.canvas.height - this.BORDER_WIDTH - extraWideBorder; i++) {
+			for(j = 0;j < this.BORDER_WIDTH + extraWideBorder; j++) {
 				this.makeSolidPoint(j,i);
 			}
-			for(j = this.canvas.width - this.BORDER_WIDTH; j < this.canvas.width; j++) {
+			for(j = this.canvas.width - this.BORDER_WIDTH - extraWideBorder; j < this.canvas.width; j++) {
 				this.makeSolidPoint(j,i);
 			}
 		}
-		for(i = this.canvas.height - this.BORDER_WIDTH; i < this.canvas.height; i++) {
+		for(i = this.canvas.height - this.BORDER_WIDTH - extraWideBorder; i < this.canvas.height; i++) {
 			for(j = 0; j < this.canvas.width; j++) {
 				this.makeSolidPoint(j,i);
 			}
 		}
 	}
+	*/
 	
 	this.addSnake = function(keyLeft, keyRight, x, y, angle, color) {
 		this.snakes[this.snakes.length] = new this.Snake(this, keyLeft, keyRight, x, y, angle, color);
@@ -152,7 +155,7 @@ function CanvasKurve() {
 		if(this.solid[x] == undefined) {
 			this.solid[x] = new Array();
 		}
-		//this.paintPink(x,y);
+		//this.paintPink(x,y);  // uncomment for collision feedback
 		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
 	}
 	
@@ -168,6 +171,7 @@ function CanvasKurve() {
 		this.parent = parent;
 		
 		//Constants
+		this.BORDER_WIDTH = this.parent.BORDER_WIDTH;
 		this.FPS = this.parent.FPS;
 		this.INTERVAL = this.parent.INTERVAL;
 		this.SPEED = this.parent.SPEED;
@@ -189,8 +193,13 @@ function CanvasKurve() {
 			if(!this.isGap) {
 					this.drawSnake();
 			}
+			var extraWideBorder = 5;
 			if(!this.isGap) {
-				if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false) {
+				if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false ||
+						this.x < this.BORDER_WIDTH + extraWideBorder ||
+						this.y < this.BORDER_WIDTH + extraWideBorder ||
+						this.x > this.parent.canvas.height - this.BORDER_WIDTH - extraWideBorder ||
+						this.y > this.parent.canvas.width - this.BORDER_WIDTH - extraWideBorder) {
 					clearInterval(this.intervalID);
 					//TODO: register loser
 				}
@@ -205,8 +214,8 @@ function CanvasKurve() {
 			this.parent.ctxB.lineWidth = this.LINE_WIDTH;
 			this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= this.color;
-			this.parent.ctxB.moveTo(this.x, this.y);
-			this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
+			this.parent.ctxB.moveTo(this.x - this.difx, this.y - this.dify);
+			this.parent.ctxB.lineTo(this.x + this.difx, this.y + this.dify);
 			this.parent.ctxB.closePath();
 			this.parent.ctxB.stroke();
 			this.parent.ctxB.restore();
@@ -215,7 +224,7 @@ function CanvasKurve() {
 		this.drawDot = function() {
 			this.parent.ctx.fillStyle = "yellow";
 			this.parent.ctx.beginPath();
-			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 + .1,0,Math.PI*2,true);
+			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 * 1.15,0,Math.PI*2,true);
 			this.parent.ctx.closePath();
 			this.parent.ctx.fill();
 		};
