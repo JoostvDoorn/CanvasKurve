@@ -69,7 +69,7 @@ function CanvasKurve() {
 		this.addSnake(65, 83, 180, 180, 10/9*Math.PI, "orange");
 		this.addSnake(37, 39, 85, 180, 0.6*Math.PI, "red");
 		
-		this.intervalID = window.setInterval(this.updateDots.bind(this), this.INTERVAL);
+		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
 	}
 	
 	this.addSnake = function(keyLeft, keyRight, x, y, angle, color) {
@@ -92,10 +92,10 @@ function CanvasKurve() {
 		}
 	}
 	
-	this.updateDots = function() {
+	this.drawDots = function() {
 		this.canvas.width = this.canvas.width;
 		for(snake in this.snakes) {
-			this.snakes[snake].updateDot();
+			this.snakes[snake].drawDot();
 		}
 	}
 	
@@ -143,13 +143,13 @@ function CanvasKurve() {
 			this.dify = this.SPEED*Math.sin(this.angle);
 			this.updateGap();
 			if(!this.isGap) {
-					this.updateSnake();
+					this.drawSnake();
 			}
 			this.x += this.difx; this.y += this.dify;
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 			
-		this.updateSnake = function() {
+		this.drawSnake = function() {
 			this.parent.ctxB.save();
 			this.parent.ctxB.beginPath();
 			this.parent.ctxB.lineWidth = this.LINE_WIDTH;
@@ -165,7 +165,7 @@ function CanvasKurve() {
 			this.parent.ctxB.restore();
 		};
 			
-		this.updateDot = function() {
+		this.drawDot = function() {
 			this.parent.ctxB.save();
 			this.parent.ctx.fillStyle = "yellow";
 			this.parent.ctx.beginPath();
