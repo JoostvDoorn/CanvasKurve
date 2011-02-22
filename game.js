@@ -42,9 +42,13 @@ function CanvasKurve() {
 	this.ctx;
 	this.ctxB;
 	this.snakes = new Array();
-	//Stores the input references
+	// Stores the input references
 	this.inputUp = new Array();
 	this.inputDown = new Array();
+	// Registers solid pixels
+	this.solid = new Array();
+	
+	
 	this.init = function() {
 		this.canvas = document.getElementById("canvas");
 		this.background = document.getElementById("background");
@@ -56,7 +60,7 @@ function CanvasKurve() {
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		
 		this.addSnake(38, 40, 20, 30, 0, "green");
-		this.addSnake(39, 41, 80, 80, 0.6*Math.PI, "red");
+		this.addSnake(37, 39, 80, 80, Math.PI, "red");
 		
 		this.intervalID = window.setInterval(this.updateDots.bind(this), this.INTERVAL);
 	}
@@ -88,6 +92,26 @@ function CanvasKurve() {
 		}
 	}
 	
+	/**
+	* Registers points solid based on this.LINE_WIDTH, returns false if it passes a solid pixel.
+	*/
+	this.makeSolid = function(x, y, difX, difY) {
+		newX = parseInt(x + difX);
+		newY = parseInt(y + difY);
+		intX = parseInt(x);
+		intY = parseInt(y);
+		return (intX == newX && intY == newY) ? true : this.makeSolidPoint(newX, newY); //Placeholder
+	}
+	/**
+	* Makes a certain pixel solid, returns false if the pixel is solid
+	*/
+	this.makeSolidPoint = function(x, y) {
+		if(this.solid[x] == undefined) {
+			this.solid[x] = new Array();
+		}
+		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
+	}
+	
 	this.Snake = function(parent, left, right, x, y, angle, color) {
 	
 		this.parent = parent;
@@ -112,6 +136,7 @@ function CanvasKurve() {
             this.parent.ctxB.moveTo(this.x, this.y);
             var difx = this.SPEED*Math.cos(this.angle);
             var dify = this.SPEED*Math.sin(this.angle);
+			console.log(this.parent.makeSolid(this.x,this.y, difx, dify));
             this.parent.ctxB.lineTo(this.x + difx * 2, this.y + dify * 2);
 			this.x += difx; this.y += dify;
 			this.parent.ctxB.closePath();
