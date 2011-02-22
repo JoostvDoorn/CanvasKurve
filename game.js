@@ -47,11 +47,14 @@ function CanvasKurve() {
 	this.ctx;                       //foreground contex
 	this.ctxB;                      // background context
 	this.snakes = new Array();
+	this.numberOfSnakesAlive;
 	// Stores the input references
 	this.inputUp = new Array();
 	this.inputDown = new Array();
 	// Registers solid pixels
 	this.solid = new Array();
+	// Stores the players and their scores, keys, colours
+	this.players = new Array();
 	
 	
 	this.init = function() {
@@ -63,47 +66,71 @@ function CanvasKurve() {
 		this.ctx = this.canvas.getContext("2d");
 		this.ctxB = this.background.getContext("2d");
 		
+		//TODO: implement interface to create players and assign keys
+		this.addPlayer("Nick", 38, 40, "orange");
+		this.addPlayer("Thomas", 65, 83, "green");
+		this.addPlayer("Joost", 37, 39, "red");
+		
+		this.initRound();
+		
+		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
+	}
+	
+	this.initRound = function() {
+		for(i in this.players) { //create new snake for each player
+			this.addRandomSnake(this.players[i].keyLeft, this.players[i].keyRight, this.players[i].color);
+		}
+		this.numberOfSnakesAlive = this.snakes.length;
+		
+		// Prepare canvasses
+		this.canvas.width = this.canvas.width;
+		this.background.width = this.background.width;
 		this.ctx.fillStyle = "black";
 		this.ctxB.fillStyle = "yellow";
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		this.ctxB.fillStyle = "black";
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
-		//this.makeSolidBorder();
-		
-		this.addSnake(38, 40, 20, 30, 0, "green");
-		this.addSnake(65, 83, 180, 180, 10/9*Math.PI, "orange");
-		this.addSnake(37, 39, 85, 180, 0.6*Math.PI, "red");
-		
-		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
 	}
-	
-	/* ROMMEL
-	this.makeSolidBorder = function() {
-		var extraWideBorder = 3;
-		for(i = 0; i < this.BORDER_WIDTH + extraWideBorder; i++) {
-			for(j = 0; j < this.canvas.width; j++) {
-				this.makeSolidPoint(j,i);
-			}
-		}
-		for(i = this.BORDER_WIDTH + extraWideBorder; i < this.canvas.height - this.BORDER_WIDTH - extraWideBorder; i++) {
-			for(j = 0;j < this.BORDER_WIDTH + extraWideBorder; j++) {
-				this.makeSolidPoint(j,i);
-			}
-			for(j = this.canvas.width - this.BORDER_WIDTH - extraWideBorder; j < this.canvas.width; j++) {
-				this.makeSolidPoint(j,i);
-			}
-		}
-		for(i = this.canvas.height - this.BORDER_WIDTH - extraWideBorder; i < this.canvas.height; i++) {
-			for(j = 0; j < this.canvas.width; j++) {
-				this.makeSolidPoint(j,i);
-			}
-		}
-	}
-	*/
 	
 	this.addSnake = function(keyLeft, keyRight, x, y, angle, color) {
 		this.snakes[this.snakes.length] = new this.Snake(this, keyLeft, keyRight, x, y, angle, color);
+		this.numberOfSnakesAlive++;
+	}
+	
+	this.addRandomSnake = function(keyLeft, keyRight, color) {
+		var minSpace = 8
+		randX = (this.canvas.width - this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
+		randY = (this.canvas.height - this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
+		randAngle = Math.random() * 2 * Math.PI;
+		this.addSnake(keyLeft, keyRight, randX, randY, randAngle, color);
+	}
+	
+	this.addPlayer = function(name, keyLeft, keyRight, color) {
+		this.players[this.players.length] = new this.Player(this, name, 0, keyLeft, keyRight, color);
+	}
+	
+	this.updateScore = function(snake) {
+		this.numberOfSnakesAlive--;
+		for(i = 0; i < this.snakes.length; i++){
+			if(!this.snakes[i].isDead) {
+				this.givePointToPlayer(this.snakes[i]); // give point to living players
+				if(this.numberOfSnakesAlive <= 1) {     // kill last snake
+					clearInterval(this.snakes[i].intervalID);
+					clearInterval(this.intervalID);		// clear interval for the dots
+					this.snakes = new Array();			// delete all snakes
+					this.numberOfSnakesAlive = 0;
+				}
+			}
+		}
+	}
+	
+	this.givePointToPlayer = function(snake) {
+		for(i in this.players) {
+			if(players[i].color == snake.color) {
+				players[i].score++;
+			}
+		}
 	}
 	
 	this.keyDown = function(e) {
@@ -130,7 +157,7 @@ function CanvasKurve() {
 	}
 	
 	/**
-	* Registers points solid based on this.LINE_WIDTH, returns false if it passes a solid pixel.
+	* Registers points solid based on this.COL_DISTANCE, returns false if it passes a solid pixel.
 	*/
 	this.makeSolid = function(x, y, difX, difY, angle) {
 		newX = parseInt(x + difX);
@@ -165,6 +192,18 @@ function CanvasKurve() {
 		this.ctxB.fillRect(x, y, 1, 1);
 		this.ctxB.restore();
 	}
+		
+	this.Player = function(parent, name, score, keyLeft, keyRight, color) {
+	
+		this.parent = parent;
+		
+		// Constructor
+		this.name = name;
+		this.score = score;
+		this.keyLeft = keyLeft;
+		this.keyRight = keyRight;
+		this.color = color;
+	}
 	
 	this.Snake = function(parent, left, right, x, y, angle, color) {
 	
@@ -193,7 +232,7 @@ function CanvasKurve() {
 			if(!this.isGap) {
 					this.drawSnake();
 			}
-			var extraWideBorder = 5;
+			var extraWideBorder = 3;
 			if(!this.isGap) {
 				if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false ||
 						this.x < this.BORDER_WIDTH + extraWideBorder ||
@@ -201,7 +240,8 @@ function CanvasKurve() {
 						this.x > this.parent.canvas.height - this.BORDER_WIDTH - extraWideBorder ||
 						this.y > this.parent.canvas.width - this.BORDER_WIDTH - extraWideBorder) {
 					clearInterval(this.intervalID);
-					//TODO: register loser
+					this.isDead = true;
+					this.parent.updateScore(this);
 				}
 			}
 			this.x += this.difx; this.y += this.dify;
@@ -274,6 +314,7 @@ function CanvasKurve() {
 		this.isGap = false;
 		this.direction = 0;
 		this.color = color;
+		this.isDead = false;
 		this.registerKeys(left, right);
 		this.intervalID = window.setInterval(this.update.bind(this), this.INTERVAL);
 	};
