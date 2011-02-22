@@ -33,14 +33,17 @@ function CanvasKurve() {
 	this.RIGHT = 1;
 	this.STRAIGHT = 0;
 	this.LINE_WIDTH = 4;
+	//Gap constants
+	this.GAP_WIDTH = 3 * this.LINE_WIDTH;
+	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
+	this.MAX_GAP_SPACING = 2 * this.MIN_GAP_SPACING;
+	
 	
 	this.intervalID;
-	this.rotation;
-	this.green;
 	this.canvas;
 	this.background;
-	this.ctx;
-	this.ctxB;
+	this.ctx; 			//foreground contex
+	this.ctxB; 			// background context
 	this.snakes = new Array();
 	// Stores the input references
 	this.inputUp = new Array();
@@ -60,7 +63,8 @@ function CanvasKurve() {
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		
 		this.addSnake(38, 40, 20, 30, 0, "green");
-		this.addSnake(37, 39, 80, 80, Math.PI, "red");
+		this.addSnake(65, 83, 180, 180, 10/9*Math.PI, "orange");
+		this.addSnake(37, 39, 85, 180, 0.6*Math.PI, "red");
 		
 		this.intervalID = window.setInterval(this.updateDots.bind(this), this.INTERVAL);
 	}
@@ -125,24 +129,37 @@ function CanvasKurve() {
 		this.RIGHT = this.parent.RIGHT;
 		this.STRAIGHT = this.parent.STRAIGHT;
 		this.LINE_WIDTH = this.parent.LINE_WIDTH;
-
+		//Gap constants
+		this.GAP_WIDTH = this.parent.GAP_WIDTH;
+		this.MIN_GAP_SPACING = this.parent.MIN_GAP_SPACING;
+		this.MAX_GAP_SPACING = this.parent.MAX_GAP_SPACING;
+		
 		
 		this.update = function() {
+            this.difx = this.SPEED*Math.cos(this.angle);
+            this.dify = this.SPEED*Math.sin(this.angle);
+			this.updateGap();
+			if(!this.isGap) {
+				this.updateSnake();
+			}
+			this.x += this.difx; this.y += this.dify;
+			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
+		};
+		
+		this.updateSnake = function() {
 			this.parent.ctxB.save();
 			this.parent.ctxB.beginPath();
             this.parent.ctxB.lineWidth = this.LINE_WIDTH;
             this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= this.color;
             this.parent.ctxB.moveTo(this.x, this.y);
-            var difx = this.SPEED*Math.cos(this.angle);
-            var dify = this.SPEED*Math.sin(this.angle);
-			console.log(this.parent.makeSolid(this.x,this.y, difx, dify));
-            this.parent.ctxB.lineTo(this.x + difx * 2, this.y + dify * 2);
-			this.x += difx; this.y += dify;
+			if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify) == false) {
+				clearInterval(this.intervalID);
+			}
+            this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
 			this.parent.ctxB.closePath();
             this.parent.ctxB.stroke();
             this.parent.ctxB.restore();
-			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 		
 		this.updateDot = function() {
@@ -153,6 +170,20 @@ function CanvasKurve() {
 			this.parent.ctx.closePath();
 			this.parent.ctx.fill();
             this.parent.ctxB.restore();
+		};
+		
+		this.updateGap = function() {
+			if(this.gapSpacing < 0 && this.isGap) {
+				this.gapSpacing += this.SPEED;
+			} else if(this.gapSpacing < 0) {
+				this.gapSpacing = -this.GAP_WIDTH;
+				this.isGap = true;
+			} else if (this.gapSpacing >= 0 && this.isGap) {
+				this.isGap = false;
+				this.gapSpacing = this.MIN_GAP_SPACING + Math.random() * (this.MAX_GAP_SPACING - this.MIN_GAP_SPACING); //determine new spacing
+			} else {
+				this.gapSpacing -= this.SPEED;
+			}
 		};
 		
 		this.turn = function(direction, old) {
@@ -180,6 +211,10 @@ function CanvasKurve() {
 		this.angle = angle;
 		this.x = x;
 		this.y = y;
+		this.difx;
+		this.dify;
+		this.gapSpacing = this.MIN_GAP_SPACING + Math.random() * (this.MAX_GAP_SPACING - this.MIN_GAP_SPACING);
+		this.isGap = false;
 		this.direction = 0;
 		this.color = color;
 		this.registerKeys(left, right);
