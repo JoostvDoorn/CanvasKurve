@@ -4,22 +4,22 @@
 // Function.prototype.bind polyfill
 if ( !Function.prototype.bind ) {
 
-  Function.prototype.bind = function( obj ) {
-    var slice = [].slice,
-        args = slice.call(arguments, 1), 
-        self = this, 
-        nop = function () {}, 
-        bound = function () {
-          return self.apply( this instanceof nop ? this : ( obj || {} ), 
-                              args.concat( slice.call(arguments) ) );    
-        };
+	Function.prototype.bind = function( obj ) {
+		var slice = [].slice,
+			args = slice.call(arguments, 1), 
+			self = this, 
+			nop = function () {}, 
+			bound = function () {
+			  return self.apply( this instanceof nop ? this : ( obj || {} ), 
+								  args.concat( slice.call(arguments) ) );    
+			};
 
-    nop.prototype = self.prototype;
+		nop.prototype = self.prototype;
 
-    bound.prototype = new nop();
+		bound.prototype = new nop();
 
-    return bound;
-  };
+		return bound;
+	};
 }
 var canvasKurve;
 function CanvasKurve() { 
@@ -42,24 +42,32 @@ function CanvasKurve() {
 	this.intervalID;
 	this.canvas;
 	this.background;
-	this.ctx; 			//foreground contex
-	this.ctxB; 			// background context
+	this.ctx;                       //foreground contex
+	this.ctxB;                      // background context
 	this.snakes = new Array();
-	//Stores the input references
+	// Stores the input references
 	this.inputUp = new Array();
 	this.inputDown = new Array();
+	// Registers solid pixels
+	this.solid = new Array();
+	
+	
 	this.init = function() {
 		this.canvas = document.getElementById("canvas");
 		this.background = document.getElementById("background");
 		this.ctx = this.canvas.getContext("2d");
 		this.ctxB = this.background.getContext("2d");
-
+		
 		this.ctx.fillStyle = "black";
-		this.ctxB.fillStyle = "black";
+		this.ctxB.fillStyle = "yellow";
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
+		this.ctxB.fillStyle = "black";
+		var borderWidth = 4;
+		this.ctxB.fillRect(borderWidth,borderWidth,this.background.width-2*borderWidth,this.background.height-2*borderWidth);
 		
 		this.addSnake(38, 40, 20, 30, 0, "green");
-		this.addSnake(37, 39, 80, 80, 0.6*Math.PI, "red");
+		this.addSnake(65, 83, 180, 180, 10/9*Math.PI, "orange");
+		this.addSnake(37, 39, 85, 180, 0.6*Math.PI, "red");
 		
 		this.intervalID = window.setInterval(this.updateDots.bind(this), this.INTERVAL);
 	}
@@ -91,6 +99,26 @@ function CanvasKurve() {
 		}
 	}
 	
+	/**
+	* Registers points solid based on this.LINE_WIDTH, returns false if it passes a solid pixel.
+	*/
+	this.makeSolid = function(x, y, difX, difY) {
+		newX = parseInt(x + difX);
+		newY = parseInt(y + difY);
+		intX = parseInt(x);
+		intY = parseInt(y);
+		return (intX == newX && intY == newY) ? true : this.makeSolidPoint(newX, newY); //Placeholder
+	}
+	/**
+	* Makes a certain pixel solid, returns false if the pixel is solid
+	*/
+	this.makeSolidPoint = function(x, y) {
+		if(this.solid[x] == undefined) {
+			this.solid[x] = new Array();
+		}
+		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
+	}
+	
 	this.Snake = function(parent, left, right, x, y, angle, color) {
 	
 		this.parent = parent;
@@ -111,29 +139,32 @@ function CanvasKurve() {
 		
 		
 		this.update = function() {
-            this.difx = this.SPEED*Math.cos(this.angle);
-            this.dify = this.SPEED*Math.sin(this.angle);
+			this.difx = this.SPEED*Math.cos(this.angle);
+			this.dify = this.SPEED*Math.sin(this.angle);
 			this.updateGap();
 			if(!this.isGap) {
-				this.updateSnake();
+					this.updateSnake();
 			}
 			this.x += this.difx; this.y += this.dify;
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
-		
+			
 		this.updateSnake = function() {
 			this.parent.ctxB.save();
 			this.parent.ctxB.beginPath();
-            this.parent.ctxB.lineWidth = this.LINE_WIDTH;
-            this.parent.ctxB.lineCap = "round";
+			this.parent.ctxB.lineWidth = this.LINE_WIDTH;
+			this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= this.color;
-            this.parent.ctxB.moveTo(this.x, this.y);
-            this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
+			this.parent.ctxB.moveTo(this.x, this.y);
+			if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify) == false) {
+				clearInterval(this.intervalID);
+			}
+			this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
 			this.parent.ctxB.closePath();
-            this.parent.ctxB.stroke();
-            this.parent.ctxB.restore();
+			this.parent.ctxB.stroke();
+			this.parent.ctxB.restore();
 		};
-		
+			
 		this.updateDot = function() {
 			this.parent.ctxB.save();
 			this.parent.ctx.fillStyle = "yellow";
@@ -141,27 +172,23 @@ function CanvasKurve() {
 			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 + .1,0,Math.PI*2,true);
 			this.parent.ctx.closePath();
 			this.parent.ctx.fill();
-            this.parent.ctxB.restore();
+			this.parent.ctxB.restore();
 		};
-		
+			
 		this.updateGap = function() {
 			if(this.gapSpacing < 0 && this.isGap) {
 				this.gapSpacing += this.SPEED;
-				console.log(this.gapSpacing + this.isGap);
 			} else if(this.gapSpacing < 0) {
 				this.gapSpacing = -this.GAP_WIDTH;
 				this.isGap = true;
-				console.log(this.gapSpacing + this.isGap);
 			} else if (this.gapSpacing >= 0 && this.isGap) {
 				this.isGap = false;
 				this.gapSpacing = this.MIN_GAP_SPACING + Math.random() * (this.MAX_GAP_SPACING - this.MIN_GAP_SPACING); //determine new spacing
-				console.log(this.gapSpacing + this.isGap);
 			} else {
 				this.gapSpacing -= this.SPEED;
-				console.log(this.gapSpacing + this.isGap);
 			}
 		};
-		
+			
 		this.turn = function(direction, old) {
 			if(this.direction == old || direction != this.STRAIGHT) {
 				this.direction = direction;
@@ -205,18 +232,18 @@ function load() {
 	canvasKurve = new CanvasKurve();
 }
 function addEvent(obj, type, fn) {
-  if (obj.attachEvent) {
-    obj['e'+type+fn] = fn;
-    obj[type+fn] = function(){obj['e'+type+fn]( window.event );}
-    obj.attachEvent( 'on'+type, obj[type+fn] );
-  } else
-    obj.addEventListener(type, fn, false);
+	if (obj.attachEvent) {
+		obj['e'+type+fn] = fn;
+		obj[type+fn] = function(){obj['e'+type+fn]( window.event );}
+		obj.attachEvent( 'on'+type, obj[type+fn] );
+	} else
+		obj.addEventListener(type, fn, false);
 }
 function removeEvent(obj, type, fn) {
-  if (obj.detachEvent) {
-    obj.detachEvent('on'+type, obj[type+fn]);
-    obj[type+fn] = null;
-  } else
-    obj.removeEventListener(type, fn, false);
+	if (obj.detachEvent) {
+		obj.detachEvent('on'+type, obj[type+fn]);
+		obj[type+fn] = null;
+	} else
+		obj.removeEventListener(type, fn, false);
 }
 addEvent(window, 'load', load);
