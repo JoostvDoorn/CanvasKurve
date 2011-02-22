@@ -106,9 +106,10 @@ function CanvasKurve() {
             this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= "red";
             this.parent.ctxB.moveTo(this.x, this.y);
-            this.x += this.SPEED*Math.cos(this.angle);
-            this.y += this.SPEED*Math.sin(this.angle);
-            this.parent.ctxB.lineTo(this.x, this.y);
+            var difx = this.SPEED*Math.cos(this.angle);
+            var dify = this.SPEED*Math.sin(this.angle);
+            this.parent.ctxB.lineTo(this.x + difx * 2, this.y + dify * 2);
+			this.x += difx; this.y += dify;
 			this.parent.ctxB.closePath();
             this.parent.ctxB.stroke();
             this.parent.ctxB.restore();
