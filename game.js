@@ -27,12 +27,13 @@ function CanvasKurve() {
 	//Constants
 	this.FPS = 60;
 	this.INTERVAL = 1000/this.FPS;
-	this.SPEED = 2/36*this.INTERVAL;
+	this.SPEED = 3/36*this.INTERVAL;
 	this.TURNING_SPEED = 1/1200*this.INTERVAL;
 	this.LEFT = -1;
 	this.RIGHT = 1;
 	this.STRAIGHT = 0;
 	this.LINE_WIDTH = 5;
+	this.COL_DISTANCE = 5;
 	//Gap constants
 	this.GAP_WIDTH = 3 * this.LINE_WIDTH;
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
@@ -55,6 +56,9 @@ function CanvasKurve() {
 	this.init = function() {
 		this.canvas = document.getElementById("canvas");
 		this.background = document.getElementById("background");
+		
+	
+		
 		this.ctx = this.canvas.getContext("2d");
 		this.ctxB = this.background.getContext("2d");
 		
@@ -108,7 +112,7 @@ function CanvasKurve() {
 		intX = parseInt(x);
 		intY = parseInt(y);
 		angle = angle + 1/2*Math.PI;
-		for(i = -this.LINE_WIDTH; i <= this.LINE_WIDTH; i++) {
+		for(i = -this.COL_DISTANCE; i <= this.COL_DISTANCE; i++) {
 			otherX = parseInt(x + i*Math.cos(angle));
 			otherY =  parseInt(y + i*Math.sin(angle));
 			this.makeSolidPoint(otherX, otherY);
@@ -162,13 +166,13 @@ function CanvasKurve() {
 			this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= this.color;
 			this.parent.ctxB.moveTo(this.x, this.y);
-			if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false) {
-				clearInterval(this.intervalID);
-			}
 			this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
 			this.parent.ctxB.closePath();
 			this.parent.ctxB.stroke();
 			this.parent.ctxB.restore();
+			if(this.parent.makeSolid(this.x, this.y, this.difx, this.dify, this.angle) == false) {
+				clearInterval(this.intervalID);
+			}
 		};
 			
 		this.drawDot = function() {
