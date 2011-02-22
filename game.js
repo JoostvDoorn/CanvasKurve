@@ -32,7 +32,7 @@ function CanvasKurve() {
 	this.LEFT = -1;
 	this.RIGHT = 1;
 	this.STRAIGHT = 0;
-	this.LINE_WIDTH = 4;
+	this.LINE_WIDTH = 5;
 	//Gap constants
 	this.GAP_WIDTH = 3 * this.LINE_WIDTH;
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
@@ -102,11 +102,17 @@ function CanvasKurve() {
 	/**
 	* Registers points solid based on this.LINE_WIDTH, returns false if it passes a solid pixel.
 	*/
-	this.makeSolid = function(x, y, difX, difY) {
+	this.makeSolid = function(x, y, difX, difY, angle) {
 		newX = parseInt(x + difX);
 		newY = parseInt(y + difY);
 		intX = parseInt(x);
 		intY = parseInt(y);
+		angle = angle + 1/2*Math.PI;
+		for(i = -this.LINE_WIDTH; i <= this.LINE_WIDTH; i++) {
+			otherX = parseInt(x + i*Math.cos(angle));
+			otherY =  parseInt(y + i*Math.sin(angle));
+			this.makeSolidPoint(otherX, otherY);
+		}
 		return (intX == newX && intY == newY) ? true : this.makeSolidPoint(newX, newY); //Placeholder
 	}
 	/**
@@ -156,7 +162,7 @@ function CanvasKurve() {
 			this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= this.color;
 			this.parent.ctxB.moveTo(this.x, this.y);
-			if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify) == false) {
+			if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false) {
 				clearInterval(this.intervalID);
 			}
 			this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
@@ -166,13 +172,11 @@ function CanvasKurve() {
 		};
 			
 		this.drawDot = function() {
-			this.parent.ctxB.save();
 			this.parent.ctx.fillStyle = "yellow";
 			this.parent.ctx.beginPath();
 			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 + .1,0,Math.PI*2,true);
 			this.parent.ctx.closePath();
 			this.parent.ctx.fill();
-			this.parent.ctxB.restore();
 		};
 			
 		this.updateGap = function() {
