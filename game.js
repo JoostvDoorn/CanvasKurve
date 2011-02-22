@@ -1,6 +1,38 @@
-﻿var canvasKurve;
+﻿/*
+* Support for bind taken from https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
+*/
+// Function.prototype.bind polyfill
+if ( !Function.prototype.bind ) {
+
+  Function.prototype.bind = function( obj ) {
+    var slice = [].slice,
+        args = slice.call(arguments, 1), 
+        self = this, 
+        nop = function () {}, 
+        bound = function () {
+          return self.apply( this instanceof nop ? this : ( obj || {} ), 
+                              args.concat( slice.call(arguments) ) );    
+        };
+
+    nop.prototype = self.prototype;
+
+    bound.prototype = new nop();
+
+    return bound;
+  };
+}
+var canvasKurve;
 function CanvasKurve() { 
 
+	//Constants
+	this.FPS = 60;
+	this.INTERVAL = 1000/this.FPS;
+	this.SPEED = 2/36*this.INTERVAL;
+	this.TURNING_SPEED = 1/1200*this.INTERVAL;
+	this.LEFT = -1;
+	this.RIGHT = 1;
+	this.STRAIGHT = 0;
+	this.LINE_WIDTH = 4;
 	
 	this.intervalID;
 	this.rotation;
@@ -23,7 +55,10 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "black";
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
 		
-		this.snakes[this.snakes.length] = new this.Snake(this, 37, 39);
+		this.snakes[this.snakes.length] = new this.Snake(this, 37, 39, 10, 10);
+		this.snakes[this.snakes.length] = new this.Snake(this, 38, 40, 20, 30);
+		
+		this.intervalID = window.setInterval(this.updateDots.bind(this), this.INTERVAL);
 	}
 	
 	this.keyDown = function(e) {
@@ -42,42 +77,52 @@ function CanvasKurve() {
 		}
 	}
 	
-	this.Snake = function(parent, left, right) {
+	this.updateDots = function() {
+		this.canvas.width = this.canvas.width;
+		for(snake in this.snakes) {
+			this.snakes[snake].updateDot();
+		}
+	}
+	
+	this.Snake = function(parent, left, right, x, y) {
+	
+		this.parent = parent;
 		
 		//Constants
-		this.FPS = 60;
-		this.INTERVAL = 1000/this.FPS;
-		this.SPEED = 2/36*this.INTERVAL;
-		this.TURNING_SPEED = 1/1200*this.INTERVAL;
-		this.LEFT = -1;
-		this.RIGHT = 1;
-		this.STRAIGHT = 0;
-		this.LINE_WIDTH = 4;
+		this.FPS = this.parent.FPS;
+		this.INTERVAL = this.parent.INTERVAL;
+		this.SPEED = this.parent.SPEED;
+		this.TURNING_SPEED = this.parent.TURNING_SPEED;
+		this.LEFT = this.parent.LEFT;
+		this.RIGHT = this.parent.RIGHT;
+		this.STRAIGHT = this.parent.STRAIGHT;
+		this.LINE_WIDTH = this.parent.LINE_WIDTH;
+
 		
 		this.update = function() {
 			this.parent.ctxB.save();
+			this.parent.ctxB.beginPath();
             this.parent.ctxB.lineWidth = this.LINE_WIDTH;
             this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= "red";
-            this.parent.ctxB.translate(this.x, this.y);
+            this.parent.ctxB.moveTo(this.x, this.y);
             this.x += this.SPEED*Math.cos(this.angle);
             this.y += this.SPEED*Math.sin(this.angle);
-            this.parent.ctxB.lineTo(this.SPEED*Math.cos(this.angle), this.SPEED*Math.sin(this.angle));
+            this.parent.ctxB.lineTo(this.x, this.y);
+			this.parent.ctxB.closePath();
             this.parent.ctxB.stroke();
             this.parent.ctxB.restore();
-			this.updateDot();
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 		
 		this.updateDot = function() {
-			this.parent.ctx.save();
-			this.parent.canvas.width = this.parent.canvas.width;
+			this.parent.ctxB.save();
 			this.parent.ctx.fillStyle = "yellow";
 			this.parent.ctx.beginPath();
 			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 + .1,0,Math.PI*2,true);
 			this.parent.ctx.closePath();
 			this.parent.ctx.fill();
-			this.parent.ctx.restore();
+            this.parent.ctxB.restore();
 		};
 		
 		this.turn = function(direction, old) {
@@ -103,13 +148,13 @@ function CanvasKurve() {
 		
 		//Constructor
 		this.angle = 0;
-		this.x = 10;
-		this.y = 10;
+		this.x = x;
+		this.y = y;
 		this.direction = 0;
-		this.parent = parent;
 		this.registerKeys(left, right);
 		this.intervalID = window.setInterval(this.update.bind(this), this.INTERVAL);
 	};
+
 	addEvent(window, 'keydown', this.keyDown.bind(this)); 
 	addEvent(window, 'keyup', this.keyUp.bind(this)); 
 	this.init();
