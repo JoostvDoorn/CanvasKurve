@@ -94,7 +94,7 @@ function CanvasKurve() {
 		}
 		this.drawDots();
 		this.numberOfSnakesAlive = -1;
-		
+		this.updateScoreBoard();
 	}
 	
 	this.startRound = function() {
@@ -126,7 +126,7 @@ function CanvasKurve() {
 	}
 	
 	this.updateScore = function(snake) {
-		this.numberOfSnakesAlive--;
+		this.numberOfSnakesAlive--;		
 		for(i = 0; i < this.snakes.length; i++){
 			if(!this.snakes[i].isDead) {
 				this.snakes[i].score++;					// give point to living players
@@ -137,14 +137,21 @@ function CanvasKurve() {
 				}
 			}
 		}
+		this.updateScoreBoard();
 	}
 	
-	this.givePointToPlayer = function(snake) {
-		for(i in this.players) {
-			if(players[i].color == snake.color) {
-				players[i].score++;
-			}
+	this.updateScoreBoard = function() {
+		this.sortedScoreArray = new Array();
+		for(i in this.snakes) {
+			this.sortedScoreArray[i] = new Array(this.snakes[i].score,this.snakes[i].name, this.snakes[i].color);
 		}
+		this.scoreHTML = '';
+		this.sortedScoreArray.sort();
+		for(var i=this.sortedScoreArray.length-1; i >= 0; i--)
+		{
+			this.scoreHTML += '<tr style="color:'+this.sortedScoreArray[i][2]+'"><td>'+this.sortedScoreArray[i][1]+'</td><td>'+this.sortedScoreArray[i][0]+'</td></tr>';
+		}
+		document.getElementById('score-table').innerHTML = this.scoreHTML;
 	}
 	
 	this.keyDown = function(e) {
@@ -205,14 +212,6 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "pink";
 		this.ctxB.fillRect(x, y, 1, 1);
 		this.ctxB.restore();
-	}
-		
-	this.Player = function(parent, name, score, keyLeft, keyRight, color) {
-	
-		this.parent = parent;
-		
-		// Constructor
-		
 	}
 	
 	this.Snake = function(parent, name, score, left, right, x, y, angle, color) {
