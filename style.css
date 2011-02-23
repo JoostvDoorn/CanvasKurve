@@ -5,7 +5,7 @@
 #background{}
 /*website*/
 html {font-size:100.01%;}
-body {height:100%;margin:0;font-size:75%;color:#FFF;background:#999;font-family:"Helvetica Neue", Arial, Helvetica, sans-serif;}
+body {height:100%;margin:0;font-size:75%;color:#FFF;background:#000;font-family:"Helvetica Neue", Arial, Helvetica, sans-serif;}
 .clear{clear:both;}
 #container{width:750px;margin:0 auto;background-color:#262626;padding:10px;vertical-align:middle;}
 #main{float:left;}

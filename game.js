@@ -40,10 +40,10 @@ function CanvasKurve() {
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
 	this.MAX_GAP_SPACING = 2 * this.MIN_GAP_SPACING;
 	//Glow constants
-	this.GLOW = false; // Turns glow on or off
-	this.GLOW_COUNT = 8; // Higher glow count gives a better quality glow
-	this.GLOW_ALPHA = 0.1/this.GLOW_COUNT;
-	this.GLOW_WIDTH = .5;
+	this.GLOW = true; // Turns glow on or off
+	this.GLOW_COUNT = 10; // Higher glow count gives a better quality glow
+	this.GLOW_ALPHA = 0.02; // Should be at least 0.05 otherwise it will look different in firefox
+	this.GLOW_WIDTH = 20;
 	//Set to true to paint the solid points
 	this.PAINT_COLLISIONS = false;
 	//Default colors
@@ -68,6 +68,9 @@ function CanvasKurve() {
 								 '#ffffff', //White
 								 '#b668ff'  //Purple
 								 );
+	//Main game colors
+	this.BACKGROUND_COLOR = "black";
+	this.BORDER_COLOR = "#EBE54D";
 	//An array with the colors currently used
 	this.colors;
 	this.intervalID;
@@ -120,10 +123,10 @@ function CanvasKurve() {
 		// Prepare canvasses
 		this.canvas.width = this.canvas.width;
 		this.background.width = this.background.width;
-		this.ctx.fillStyle = "black";
-		this.ctxB.fillStyle = "yellow";
+		this.ctx.fillStyle = this.BACKGROUND_COLOR;
+		this.ctxB.fillStyle = this.BORDER_COLOR;
 		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
-		this.ctxB.fillStyle = "black";
+		this.ctxB.fillStyle = this.BACKGROUND_COLOR;
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
 		
@@ -325,15 +328,29 @@ function CanvasKurve() {
 			//Handles the glow effect
 			if(this.parent.GLOW == true)
 			{
-				for(var i = 0; i<this.parent.GLOW_COUNT; i++) {
+				for(var i = 1; i<=this.parent.GLOW_COUNT; i++) {
+				
 					this.parent.ctxB.save();
 					this.parent.ctxB.beginPath();
-					this.parent.ctxB.fillStyle= this.color;
-					this.parent.ctxB.arc(this.x, this.y, this.parent.LINE_WIDTH + i*i*i/(this.parent.GLOW_COUNT*this.parent.GLOW_COUNT)*this.parent.GLOW_WIDTH, 0, Math.PI*2, true); 
+					this.parent.ctxB.lineWidth = this.parent.LINE_WIDTH + i*i/(this.parent.GLOW_COUNT*this.parent.GLOW_COUNT)*this.parent.GLOW_WIDTH;
+					this.parent.ctxB.lineCap = "butt";
+					this.parent.ctxB.strokeStyle= this.color;
+					this.parent.ctxB.moveTo(this.x - factorBackwards*this.difx, this.y - factorBackwards*this.dify);
+					this.parent.ctxB.lineTo(this.x + factorForwards*this.difx, this.y + factorForwards*this.dify);
 					this.parent.ctxB.closePath();
 					this.parent.ctxB.globalAlpha = this.parent.GLOW_ALPHA;
-					this.parent.ctxB.fill();
+					this.parent.ctxB.globalCompositeOperation = "source-over";
+					this.parent.ctxB.stroke();
 					this.parent.ctxB.restore();
+					// this.parent.ctxB.save();
+					// this.parent.ctxB.beginPath();
+					// this.parent.ctxB.fillStyle= this.color;
+					// this.parent.ctxB.arc(this.x, this.y, this.parent.LINE_WIDTH + i/(this.parent.GLOW_COUNT)*this.parent.GLOW_WIDTH, 0, Math.PI*2, true); 
+					// this.parent.ctxB.closePath();
+					// this.parent.ctxB.globalAlpha = this.parent.GLOW_ALPHA;
+					// this.parent.ctxB.globalCompositeOperation = "source-over";
+					// this.parent.ctxB.fill();
+					// this.parent.ctxB.restore();
 				}
 			}
 		};
