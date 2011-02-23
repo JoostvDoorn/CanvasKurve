@@ -41,8 +41,9 @@ function CanvasKurve() {
 	this.MAX_GAP_SPACING = 2 * this.MIN_GAP_SPACING;
 	//Glow constants
 	this.GLOW = true; // Turns glow on or off
-	this.GLOW_COUNT = 6; // Higher glow count gives a better quality glow
-	this.GLOW_ALPHA = 0.03;
+	this.GLOW_COUNT = 8; // Higher glow count gives a better quality glow
+	this.GLOW_ALPHA = 0.1/this.GLOW_COUNT;
+	this.GLOW_WIDTH = 3;
 	
 	
 	this.intervalID;
@@ -76,7 +77,7 @@ function CanvasKurve() {
 		
 		//TODO: implement interface to create players and assign keys
 		this.addRandomSnake("Nick", 0, 38, 40, "orange");	// up down
-		this.addRandomSnake("Thomas", 0, 65, 83, "green");	// a s
+		this.addRandomSnake("Thomas", 0, 65, 83, "#08e000");	// a s
 		this.addRandomSnake("Joost", 0, 37, 39, "red");		// left right
 		
 		this.initRound();
@@ -283,7 +284,7 @@ function CanvasKurve() {
 					this.parent.ctxB.save();
 					this.parent.ctxB.beginPath();
 					this.parent.ctxB.fillStyle= this.color;
-					this.parent.ctxB.arc(this.x, this.y, this.parent.LINE_WIDTH + i*i*i/(this.parent.GLOW_COUNT*this.parent.GLOW_COUNT), 0, Math.PI*2, true); 
+					this.parent.ctxB.arc(this.x, this.y, this.parent.LINE_WIDTH + i*i*i/(this.parent.GLOW_COUNT*this.parent.GLOW_COUNT)*this.parent.GLOW_WIDTH, 0, Math.PI*2, true); 
 					this.parent.ctxB.closePath();
 					this.parent.ctxB.globalAlpha = this.parent.GLOW_ALPHA;
 					this.parent.ctxB.fill();
