@@ -34,7 +34,7 @@ function CanvasKurve() {
 	this.RIGHT = 1;
 	this.STRAIGHT = 0;
 	this.LINE_WIDTH = 5;
-	this.COL_DISTANCE = 5;
+	this.COL_DISTANCE = 3;
 	//Gap constants
 	this.GAP_WIDTH = 3 * this.LINE_WIDTH;
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
@@ -46,6 +46,7 @@ function CanvasKurve() {
 	this.background;
 	this.ctx;                       //foreground contex
 	this.ctxB;                      // background context
+	// Stores players and their snakes
 	this.snakes = new Array();
 	this.numberOfSnakesAlive;
 	// Stores the input references
@@ -53,8 +54,6 @@ function CanvasKurve() {
 	this.inputDown = new Array();
 	// Registers solid pixels
 	this.solid = new Array();
-	// Stores the players and their scores, keys, colours
-	this.players = new Array();
 	
 	
 	this.init = function() {
@@ -67,21 +66,15 @@ function CanvasKurve() {
 		this.ctxB = this.background.getContext("2d");
 		
 		//TODO: implement interface to create players and assign keys
-		this.addPlayer("Nick", 38, 40, "orange");
-		this.addPlayer("Thomas", 65, 83, "green");
-		this.addPlayer("Joost", 37, 39, "red");
+		this.addRandomSnake("Nick", 0, 38, 40, "orange");	// up down
+		this.addRandomSnake("Thomas", 0, 65, 83, "green");	// a s
+		this.addRandomSnake("Joost", 0, 37, 39, "red");		// left right
 		
 		this.initRound();
-		
-		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
+		this.startRound();
 	}
 	
 	this.initRound = function() {
-		for(i in this.players) { //create new snake for each player
-			this.addRandomSnake(this.players[i].keyLeft, this.players[i].keyRight, this.players[i].color);
-		}
-		this.numberOfSnakesAlive = this.snakes.length;
-		
 		// Prepare canvasses
 		this.canvas.width = this.canvas.width;
 		this.background.width = this.background.width;
@@ -91,35 +84,52 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "black";
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
+		for(i in this.snakes) {
+			this.snakes[i].resetToRandomPosition();
+			this.snakes[i].startStep();
+		}
+		this.drawDots();
+		this.numberOfSnakesAlive = -1;
+		
 	}
 	
-	this.addSnake = function(keyLeft, keyRight, x, y, angle, color) {
-		this.snakes[this.snakes.length] = new this.Snake(this, keyLeft, keyRight, x, y, angle, color);
+	this.startRound = function() {
+		this.numberOfSnakesAlive = this.snakes.length;
+		for(i in this.snakes) {
+			this.snakes[i].setInterval();
+		}
+		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
+	}
+	
+	this.spacebarCode = function() {
+		if(this.numberOfSnakesAlive == 0) {
+			this.initRound();
+		} else if(this.numberOfSnakesAlive == -1) {
+			this.startRound();
+		} else {
+			//this.pause();
+		}
+	}
+	
+	this.addSnake = function(name, score, keyLeft, keyRight, x, y, angle, color) {
+		this.snakes[this.snakes.length] = new this.Snake(this, name, score, keyLeft, keyRight, x, y, angle, color);
 		this.numberOfSnakesAlive++;
 	}
 	
-	this.addRandomSnake = function(keyLeft, keyRight, color) {
-		var minSpace = 8
-		randX = (this.canvas.width - this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
-		randY = (this.canvas.height - this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
-		randAngle = Math.random() * 2 * Math.PI;
-		this.addSnake(keyLeft, keyRight, randX, randY, randAngle, color);
-	}
-	
-	this.addPlayer = function(name, keyLeft, keyRight, color) {
-		this.players[this.players.length] = new this.Player(this, name, 0, keyLeft, keyRight, color);
+	this.addRandomSnake = function(name, score, keyLeft, keyRight, color) {
+		this.addSnake(name, score, keyLeft, keyRight, 0, 0, 0, color);
+		this.snakes[this.snakes.length - 1].resetToRandomPosition();
 	}
 	
 	this.updateScore = function(snake) {
 		this.numberOfSnakesAlive--;
 		for(i = 0; i < this.snakes.length; i++){
 			if(!this.snakes[i].isDead) {
-				this.givePointToPlayer(this.snakes[i]); // give point to living players
+				this.snakes[i].score++;					// give point to living players
 				if(this.numberOfSnakesAlive <= 1) {     // kill last snake
 					clearInterval(this.snakes[i].intervalID);
 					clearInterval(this.intervalID);		// clear interval for the dots
-					this.snakes = new Array();			// delete all snakes
-					this.numberOfSnakesAlive = 0;
+					this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
 				}
 			}
 		}
@@ -198,14 +208,10 @@ function CanvasKurve() {
 		this.parent = parent;
 		
 		// Constructor
-		this.name = name;
-		this.score = score;
-		this.keyLeft = keyLeft;
-		this.keyRight = keyRight;
-		this.color = color;
+		
 	}
 	
-	this.Snake = function(parent, left, right, x, y, angle, color) {
+	this.Snake = function(parent, name, score, left, right, x, y, angle, color) {
 	
 		this.parent = parent;
 		
@@ -304,6 +310,24 @@ function CanvasKurve() {
 			this.parent.inputUp[right][this.parent.inputUp[right].length] = this.turn.bind(this, this.STRAIGHT, this.RIGHT);
 		}
 		
+		this.resetToRandomPosition = function(){
+			var minSpace = 15;
+			this.x = (this.parent.canvas.width - 2*this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
+			this.y = (this.parent.canvas.height - 2*this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
+			this.angle = Math.random() * 2 * Math.PI;
+		}
+		
+		this.startStep = function() {
+			this.difx = 4*Math.cos(this.angle); //step 4 pixels
+			this.dify = 4*Math.sin(this.angle);
+			this.drawSnake();
+			this.x += this.difx; this.y += this.dify;
+		}
+		
+		this.setInterval = function() {
+			this.intervalID = window.setInterval(this.update.bind(this), this.INTERVAL);
+		}
+
 		//Constructor
 		this.angle = angle;
 		this.x = x;
@@ -313,10 +337,11 @@ function CanvasKurve() {
 		this.gapSpacing = this.MIN_GAP_SPACING + Math.random() * (this.MAX_GAP_SPACING - this.MIN_GAP_SPACING);
 		this.isGap = false;
 		this.direction = 0;
+		this.name = name;
+		this.score = score;
 		this.color = color;
 		this.isDead = false;
 		this.registerKeys(left, right);
-		this.intervalID = window.setInterval(this.update.bind(this), this.INTERVAL);
 	};
 
 	addEvent(window, 'keydown', this.keyDown.bind(this)); 
