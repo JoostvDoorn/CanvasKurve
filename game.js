@@ -39,13 +39,17 @@ function CanvasKurve() {
 	this.GAP_WIDTH = 3 * this.LINE_WIDTH;
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
 	this.MAX_GAP_SPACING = 2 * this.MIN_GAP_SPACING;
+	//Glow constants
+	this.GLOW = true; // Turns glow on or off
+	this.GLOW_COUNT = 6; // Higher glow count gives a better quality glow
+	this.GLOW_ALPHA = 0.04;
 	
 	
 	this.intervalID;
 	this.canvas;
 	this.background;
 	this.ctx;                       //foreground contex
-	this.ctxB;                      // background context
+	this.ctxB;                      // background context'
 	this.snakes = new Array();
 	// Stores the input references
 	this.inputUp = new Array();
@@ -162,6 +166,7 @@ function CanvasKurve() {
 		this.ctxB.fillRect(x, y, 1, 1);
 		this.ctxB.restore();
 	}
+
 	
 	this.Snake = function(parent, left, right, x, y, angle, color) {
 	
@@ -205,11 +210,25 @@ function CanvasKurve() {
 			this.parent.ctxB.lineWidth = this.LINE_WIDTH;
 			this.parent.ctxB.lineCap = "round";
 			this.parent.ctxB.strokeStyle= this.color;
-			this.parent.ctxB.moveTo(this.x, this.y);
-			this.parent.ctxB.lineTo(this.x + this.difx * 2, this.y + this.dify * 2);
+			this.parent.ctxB.moveTo(this.x - this.difx, this.y - this.dify);
+			this.parent.ctxB.lineTo(this.x + this.difx, this.y + this.dify);
 			this.parent.ctxB.closePath();
 			this.parent.ctxB.stroke();
 			this.parent.ctxB.restore();
+			//Handles the glow effect
+			if(this.parent.GLOW == true)
+			{
+				for(var i = 0; i<this.parent.GLOW_COUNT; i++) {
+					this.parent.ctxB.save();
+					this.parent.ctxB.beginPath();
+					this.parent.ctxB.fillStyle= this.color;
+					this.parent.ctxB.arc(this.x, this.y, this.parent.LINE_WIDTH + i*i*i/(this.parent.GLOW_COUNT*this.parent.GLOW_COUNT), 0, Math.PI*2, true); 
+					this.parent.ctxB.closePath();
+					this.parent.ctxB.globalAlpha = this.parent.GLOW_ALPHA;
+					this.parent.ctxB.fill();
+					this.parent.ctxB.restore();
+				}
+			}
 		};
 			
 		this.drawDot = function() {
