@@ -143,6 +143,7 @@ function CanvasKurve() {
 		for(i in this.snakes) {
 			this.snakes[i].setInterval();
 		}
+		document.getElementById("toggle-button").disabled = true;
 		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
 	}
 	
@@ -175,6 +176,7 @@ function CanvasKurve() {
 					clearInterval(this.snakes[i].intervalID);
 					clearInterval(this.intervalID);		// clear interval for the dots
 					this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
+					document.getElementById("toggle-button").disabled = false;
 				}
 			}
 		}
