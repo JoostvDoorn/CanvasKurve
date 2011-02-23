@@ -80,7 +80,6 @@ function CanvasKurve() {
 		this.addRandomSnake("Joost", 0, 37, 39, "red");		// left right
 		
 		this.initRound();
-		this.startRound();
 	}
 	
 	this.initRound = function() {
@@ -94,7 +93,7 @@ function CanvasKurve() {
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
 		
-
+		this.solid = new Array();
 		for(i in this.snakes) {
 			this.snakes[i].resetToRandomPosition();
 			this.snakes[i].startStep();
@@ -346,6 +345,7 @@ function CanvasKurve() {
 			this.difx = 4*Math.cos(this.angle); //step 4 pixels
 			this.dify = 4*Math.sin(this.angle);
 			this.drawSnake();
+			this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle)
 			this.x += this.difx; this.y += this.dify;
 		}
 		
