@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Support for bind taken from https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 */
 // Function.prototype.bind polyfill
@@ -154,8 +154,8 @@ function CanvasKurve() {
 			this.sortedScoreArray[i] = new Array(this.snakes[i].score,this.snakes[i].name, this.snakes[i].color);
 		}
 		this.scoreHTML = '';
-		this.sortedScoreArray.sort();
-		for(var i=this.sortedScoreArray.length-1; i >= 0; i--)
+		this.sortedScoreArray.sort(function(a,b){return b[0] - a[0];});
+		for(i in this.sortedScoreArray)
 		{
 			this.scoreHTML += '<tr style="color:'+this.sortedScoreArray[i][2]+'"><td>'+this.sortedScoreArray[i][1]+'</td><td>'+this.sortedScoreArray[i][0]+'</td></tr>';
 		}
@@ -341,6 +341,7 @@ function CanvasKurve() {
 			this.y = (this.parent.canvas.height - 2*this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
 			this.angle = Math.random() * 2 * Math.PI;
 			this.isDead = false;
+			this.gapSpacing = this.MIN_GAP_SPACING + Math.random() * (this.MAX_GAP_SPACING - this.MIN_GAP_SPACING);
 		}
 		
 		this.startStep = function() {
