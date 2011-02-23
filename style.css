@@ -1,11 +1,6 @@
-canvas {
-	position: absolute;
+/*game size*/#canvas-container{	width:600px;	height:600px;
+}/*canvas container & two canvasses*/#canvas-container{	position:relative;}
+#canvas{	position: absolute;	top:0;	left:0;
 }
-
-#canvas {
-	z-index:1;
-}
-
-#background {
-	z-index:0;
-}
+#background{	
+}/*website*/html {font-size:100.01%;}body {height:100%;margin:0;font-size:75%;color:#FFF;background:#999;font-family:"Helvetica Neue", Arial, Helvetica, sans-serif;}.clear{clear:both;}#container{	width:750px;	margin:0 auto;	background-color:#262626;	padding:10px;	vertical-align:middle;}#main{	float:left;}#side-bar{	float:right;}#game-bar{	height:580px;	width:130px;	padding:10px;	background-color:#363636;}#game-bar h2{	text-align:center;	margin:0;}#score-table{	width:130px;	font-size:14px;	font-weight:bold;}#score-table td:last-child{	text-align:right;}#copyright{	text-align:center;	height:30px;	line-height:30px;}
