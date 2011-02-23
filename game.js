@@ -211,7 +211,7 @@ function CanvasKurve() {
 		intX = parseInt(x);
 		intY = parseInt(y);
 		angleWidth = angle + 1/2*Math.PI;
-		for(k = -this.SPEED; k <= 0; k++) {
+		for(k = -Math.sqrt(Math.pow(difX,2) + Math.pow(difY, 2)); k <= 0; k++) {
 			for(i = -this.COL_DISTANCE; i <= this.COL_DISTANCE; i++) {
 				otherX = parseInt(x + i*Math.cos(angleWidth) + k*Math.cos(angle));
 				otherY =  parseInt(y + i*Math.sin(angleWidth) + k*Math.sin(angle));
@@ -234,6 +234,13 @@ function CanvasKurve() {
 		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
 	}
 	this.isSolid = function(x, y) {
+		if(this.solid[x] == undefined) {
+			this.solid[x] = new Array();
+		}
+		return (this.solid[x][y] == true) ? false : true;
+	}
+	
+	this.isSolid = function(x,y) {
 		if(this.solid[x] == undefined) {
 			this.solid[x] = new Array();
 		}
@@ -272,7 +279,7 @@ function CanvasKurve() {
 			this.dify = this.SPEED*Math.sin(this.angle);
 			var extraWideBorder = 3;
 			if(!this.isGap) {
-				this.drawSnake();
+				this.drawSnake(1.0, 1);
 				if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false ||
 						this.x < this.BORDER_WIDTH + extraWideBorder ||
 						this.y < this.BORDER_WIDTH + extraWideBorder ||
@@ -288,14 +295,14 @@ function CanvasKurve() {
 			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 			
-		this.drawSnake = function() {
+		this.drawSnake = function(factorForwards, factorBackwards) {
 			this.parent.ctxB.save();
 			this.parent.ctxB.beginPath();
 			this.parent.ctxB.lineWidth = this.LINE_WIDTH;
 			this.parent.ctxB.lineCap = "butt";
 			this.parent.ctxB.strokeStyle= this.color;
-			this.parent.ctxB.moveTo(this.x - this.difx, this.y - this.dify);
-			this.parent.ctxB.lineTo(this.x + this.difx, this.y + this.dify);
+			this.parent.ctxB.moveTo(this.x - factorBackwards*this.difx, this.y - factorBackwards*this.dify);
+			this.parent.ctxB.lineTo(this.x + factorForwards*this.difx, this.y + factorForwards*this.dify);
 			this.parent.ctxB.closePath();
 			this.parent.ctxB.stroke();
 			this.parent.ctxB.restore();
@@ -368,13 +375,11 @@ function CanvasKurve() {
 		}
 		
 		this.startStep = function() {
-			this.difx = 8*Math.cos(this.angle); //step 4 pixels
+			this.difx = 8*Math.cos(this.angle); //step 8 pixels
 			this.dify = 8*Math.sin(this.angle);
-			this.drawSnake();
-			this.parent.SPEED = 8;
+			this.drawSnake(1.1, 0);
+			this.x += this.difx; this.y += this.dify;
 			this.parent.makeSolid(this.x, this.y, this.difx, this.dify, this.angle);
-			this.parent.SPEED = this.SPEED;
-			this.x += this.difx*0.5; this.y += this.dify*0.5;
 		}
 		
 		this.setInterval = function() {
