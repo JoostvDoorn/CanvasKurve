@@ -340,6 +340,7 @@ function CanvasKurve() {
 			this.x = (this.parent.canvas.width - 2*this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
 			this.y = (this.parent.canvas.height - 2*this.BORDER_WIDTH - 2*minSpace) * Math.random() + this.BORDER_WIDTH + minSpace;
 			this.angle = Math.random() * 2 * Math.PI;
+			this.isDead = false;
 		}
 		
 		this.startStep = function() {
