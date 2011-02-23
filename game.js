@@ -40,25 +40,36 @@ function CanvasKurve() {
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
 	this.MAX_GAP_SPACING = 2 * this.MIN_GAP_SPACING;
 	//Glow constants
-	this.GLOW = true; // Turns glow on or off
+	this.GLOW = false; // Turns glow on or off
 	this.GLOW_COUNT = 8; // Higher glow count gives a better quality glow
 	this.GLOW_ALPHA = 0.1/this.GLOW_COUNT;
 	this.GLOW_WIDTH = .5;
 	//Set to true to paint the solid points
 	this.PAINT_COLLISIONS = false;
 	//Default colors
-	this.DEFAULT_COLORS = new Array('#08e000', //Green
-									'#0098d8', //Blue
-									'#ff68c1', //Pink
-									'#ff3535', //Red
-									'#ff762b', //Orange
-									'#60ffe7', //Cyan
+	this.DEFAULT_COLORS = new Array('#04cb04', //Green
+									'#0369c2', //Blue
+									'#ea56ac', //Pink
+									'#ea0303', //Red
+									'#ea5d03', //Orange
+									'#54ebd3', //Cyan
 									'#ffee1e', //Yellow
 									'#ffffff', //White
-									'#b668ff'  //Purple
+									'#de4d9f'  //Purple
 									);
-	
-	
+	//Colors used if this.GLOW == true
+	this.GLOW_COLORS = new Array('#08e000', //Green
+								 '#0098d8', //Blue
+								 '#ff68c1', //Pink
+								 '#ff3535', //Red
+								 '#ff762b', //Orange
+								 '#60ffe7', //Cyan
+								 '#ffee1e', //Yellow
+								 '#ffffff', //White
+								 '#b668ff'  //Purple
+								 );
+	//An array with the colors currently used
+	this.colors;
 	this.intervalID;
 	this.canvas;
 	this.background;
@@ -78,7 +89,12 @@ function CanvasKurve() {
 		this.canvas = document.getElementById("canvas");
 		this.background = document.getElementById("background");
 		
-	
+		if(this.GLOW == true) {
+			this.colors = this.GLOW_COLORS;
+		}
+		else {
+			this.colors = this.DEFAULT_COLORS;
+		}
 		
 		this.ctx = this.canvas.getContext("2d");
 		this.ctxB = this.background.getContext("2d");
@@ -94,7 +110,7 @@ function CanvasKurve() {
 		//this.addRandomSnake("Joost", 0, 37, 39, "red");		// left right
 		
 		for(i = 0; i < 8; i++) {
-			this.addRandomSnake("Speler " + i, 0, 37, 39, this.DEFAULT_COLORS[i]);
+			this.addRandomSnake("Speler " + i, 0, 37, 39, this.colors[i]);
 		}
 		
 		this.initRound();
