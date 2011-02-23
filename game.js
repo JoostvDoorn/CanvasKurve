@@ -43,7 +43,7 @@ function CanvasKurve() {
 	this.GLOW = true; // Turns glow on or off
 	this.GLOW_COUNT = 8; // Higher glow count gives a better quality glow
 	this.GLOW_ALPHA = 0.1/this.GLOW_COUNT;
-	this.GLOW_WIDTH = 3;
+	this.GLOW_WIDTH = .5;
 	//Set to true to paint the solid points
 	this.PAINT_COLLISIONS = false;
 	//Default colors
