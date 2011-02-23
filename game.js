@@ -42,7 +42,7 @@ function CanvasKurve() {
 	//Glow constants
 	this.GLOW = true; // Turns glow on or off
 	this.GLOW_COUNT = 6; // Higher glow count gives a better quality glow
-	this.GLOW_ALPHA = 0.04;
+	this.GLOW_ALPHA = 0.03;
 	
 	
 	this.intervalID;
@@ -69,6 +69,11 @@ function CanvasKurve() {
 		this.ctx = this.canvas.getContext("2d");
 		this.ctxB = this.background.getContext("2d");
 		
+		//Register spacebar
+		this.inputUp[32] = new Array();
+		this.inputUp[32][this.inputUp[32].length] = this.spacebarUp.bind(this);
+
+		
 		//TODO: implement interface to create players and assign keys
 		this.addRandomSnake("Nick", 0, 38, 40, "orange");	// up down
 		this.addRandomSnake("Thomas", 0, 65, 83, "green");	// a s
@@ -88,6 +93,8 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = "black";
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
+		
+
 		for(i in this.snakes) {
 			this.snakes[i].resetToRandomPosition();
 			this.snakes[i].startStep();
@@ -95,6 +102,7 @@ function CanvasKurve() {
 		this.drawDots();
 		this.numberOfSnakesAlive = -1;
 		this.updateScoreBoard();
+		
 	}
 	
 	this.startRound = function() {
@@ -105,7 +113,7 @@ function CanvasKurve() {
 		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
 	}
 	
-	this.spacebarCode = function() {
+	this.spacebarUp = function() {
 		if(this.numberOfSnakesAlive == 0) {
 			this.initRound();
 		} else if(this.numberOfSnakesAlive == -1) {
