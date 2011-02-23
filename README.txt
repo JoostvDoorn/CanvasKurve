@@ -3,6 +3,7 @@ List of things to be implemented:
 		- assigning keys in the interface
 	- loop games
 		- loop rounds
-			- implement spacebar to start a round
 	- display scores in table
 	- determine maximum number of players (usually 6)
+	- Some snakes never receive points
+	- Some snake go on on their own
