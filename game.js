@@ -154,7 +154,6 @@ function CanvasKurve() {
 			this.snakes[i].resetToRandomPosition();
 			this.snakes[i].startStep();
 		}
-		this.numberOfSnakesAlive = -1;
 		this.updateScoreBoard();
 		this.gamestate = this.START_GAME;
 		
