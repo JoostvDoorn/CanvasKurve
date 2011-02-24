@@ -76,13 +76,17 @@ function CanvasKurve() {
 	//Constants for game state
 	this.MENU = 0;
 	this.RUNNING_GAME = 1;
-	this.END_OF_ROUND = 2;
-	this.PAUSE_GAME = 3;
-	this.START_GAME = 4;
-	this.END_OF_GAME = 5;
+	this.ROUND_ENDED = 2;
+	this.GAME_PAUSED = 3;
+	this.ROUND_INITIATED = 4;
+	this.GAME_ENDED = 5;
 	//Constants for messages
 	this.MESSAGE_MIN_WIDTH  = 62;
 	this.MESSAGE_MIN_HEIGHT = 24;
+	//Constans for winner message
+	this.WINNER_MIN_WIDTH = 50;
+	this.WINNER_MIN_HEIGHT = 50;
+	this.WINNER_VERTICAL_SPACING = 25;
 	
 	this.SECONDS_TO_MESSAGE = 2*Math.PI; //Seconds in multiple of 2*Math.PI
 	//An array with the colors currently used
@@ -155,7 +159,7 @@ function CanvasKurve() {
 			this.snakes[i].startStep();
 		}
 		this.updateScoreBoard();
-		this.gamestate = this.START_GAME;
+		this.gamestate = this.ROUND_INITIATED;
 		
 		//Reset frame locks
 		this.dotsLock = false;
@@ -176,19 +180,28 @@ function CanvasKurve() {
 	}
 	
 	this.spacebarUp = function() {
-		if(this.gamestate == this.END_OF_ROUND) {
-			this.initRound();
-			this.frame = 0;
-		} else if(this.gamestate == this.START_GAME) {
+		switch(this.gamestate) {
+		case this.ROUND_INITIATED:
 			this.startRound();
-		} else if(this.gamestate == this.PAUSE_GAME) {
+			break;
+		case this.GAME_PAUSED:
 			this.gamestate = this.RUNNING_GAME;
 			this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
 			clearInterval(this.intervalMessage);
-		} else {
-			this.gamestate = this.PAUSE_GAME;
+			break;
+		case this.RUNNING_GAME:
+			this.gamestate = this.GAME_PAUSED;
 			clearInterval(this.intervalID);
 			this.setMessage(true);
+			break;
+		case this.ROUND_ENDED:
+			this.initRound();
+			this.frame = 0;
+			break;
+		case this.GAME_ENDED:
+			this.gamestate = this.MENU;
+			this.initGame();
+			break;
 		}
 	}
 	
@@ -203,34 +216,36 @@ function CanvasKurve() {
 	}
 	
 	this.updateScore = function(snake) {
-		this.numberOfSnakesAlive--;		
+		this.numberOfSnakesAlive--;
+		var roundEnded;
 		for(i = 0; i < this.snakes.length; i++){
 			if(!this.snakes[i].isDead) {
 				this.snakes[i].score++;					// give point to living players
 				if(this.numberOfSnakesAlive <= 1) {     // kill last snake
-					this.endRound();
+					var roundEnded = true;
+					clearInterval(this.snakes[i].intervalID);
 				}
 			}
 		}
 		this.updateScoreBoard();
+		if(roundEnded == true) {
+			this.endRound();
+		}
 	}
 	
 	this.endRound = function() {
-		clearInterval(this.snakes[i].intervalID);
 		clearInterval(this.intervalID);		// clear interval for the dots
 		document.getElementById("toggle-button").disabled = false;
 		
-		
 		var winner = this.checkWinner();
 		if(winner == false) {
-			this.gamestate = this.END_OF_ROUND;
-			this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
+			this.gamestate = this.ROUND_ENDED;
 		
 			//Display message
 			this.setMessage();
 		}
 		else {
-			this.gamestate = this.END_OF_GAME;
+			this.gamestate = this.GAME_ENDED;
 			
 			this.endGame(winner);
 		}
@@ -240,6 +255,61 @@ function CanvasKurve() {
 	 * Called at the end of a round if a player has won
 	 */
 	this.endGame = function(winner) {
+		text = winner.name + " wins!";
+		gameOver = "KONEC HRY";
+		
+		var gameOverHeight = 50;
+		var textHeight = 30;
+		
+		var width = this.WINNER_MIN_WIDTH;
+		var height = this.WINNER_MIN_HEIGHT + this.WINNER_VERTICAL_SPACING;
+		
+		this.ctx.save();
+		this.ctx.font = gameOverHeight + "px serif";
+		gameOverWidth = this.ctx.measureText(gameOver).width;
+		height += gameOverHeight;
+		this.ctx.font = textHeight + "px sans-serif";
+		textWidth = this.ctx.measureText(text).width;
+		height += textHeight;
+		this.ctx.restore();
+		
+		gameOverWidth > textWidth ? width += gameOverWidth : width += textWidth;
+		
+		this.ctx.save();
+		
+		this.ctx.translate(.5 * this.canvas.width - .5 * width, .5 * this.canvas.height - .5 * height);
+		
+		this.ctx.save();
+		this.ctx.fillStyle = winner.color;
+		this.ctx.strokeStyle = winner.color;
+		this.ctx.globalAlpha = .55;
+		this.ctx.fillRect(0, 0, width, height);
+		this.ctx.globalAlpha = 1;
+		var border = 4;
+		this.ctx.lineWidth = border;
+		this.ctx.strokeRect(.5 * border, .5 * border, width - .5 * border, height - .5 * border);
+		this.ctx.restore();
+		
+		this.ctx.save();
+		this.ctx.font = gameOverHeight + "px serif";
+		this.ctx.translate(.5 * width - .5 * gameOverWidth, .5 * this.WINNER_MIN_HEIGHT);
+		this.ctx.fillText(gameOver, 0, gameOverHeight);
+		this.ctx.restore();
+		
+		this.ctx.save();
+		this.ctx.font = textHeight + "px sans-serif";
+		this.ctx.translate(.5 * width - .5 * textWidth, .5 * this.WINNER_MIN_HEIGHT + gameOverHeight + this.WINNER_VERTICAL_SPACING);
+		this.ctx.fillText(text, 0, textHeight);
+		this.ctx.restore();
+		
+		this.ctx.restore();
+	}
+	
+	/**
+	 * Draws the Menu etc.
+	 */
+	this.initGame = function() {
+	
 	}
 	
 	/**
@@ -251,14 +321,16 @@ function CanvasKurve() {
 		var secondScore = 0;
 		for(i = 0; i < this.snakes.length; i++){
 			if(this.snakes[i].score >= firstScore) {
+				if(firstSnake != false) {
+					secondScore = firstScore;
+				}
 				firstSnake = this.snakes[i];
 				firstScore = this.snakes[i].score;
-			}
-			else if(this.snakes[i].score >= secondScore) {
+			} else if(this.snakes[i].score > secondScore) {
 				secondScore = this.snakes[i].score;
 			}
 		}
-		return (firstScore > (secondScore + this.SCORE_DIFF)) ? firstSnake : false;
+		return (firstScore >= (secondScore + this.SCORE_DIFF)) ? firstSnake : false;
 	}
 	
 	this.updateScoreBoard = function() {
@@ -379,13 +451,13 @@ function CanvasKurve() {
 			
 			switch(this.gamestate)
 			{
-			case this.START_GAME:
+			case this.ROUND_INITIATED:
 				text = "Press spacebar to start the next round";
 				break;
-			case this.END_OF_ROUND:
+			case this.ROUND_ENDED:
 				text = "Press spacebar to continue";
 				break;
-			case this.PAUSE_GAME:
+			case this.GAME_PAUSED:
 				text = "Paused, press spacebar to continue";
 				break;
 			default:
@@ -502,11 +574,13 @@ function CanvasKurve() {
 		};
 			
 		this.drawDot = function() {
+			this.parent.ctx.save();
 			this.parent.ctx.fillStyle = "yellow";
 			this.parent.ctx.beginPath();
 			this.parent.ctx.arc(this.x, this.y,this.LINE_WIDTH/2 * 1.15,0,Math.PI*2,true);
 			this.parent.ctx.closePath();
 			this.parent.ctx.fill();
+			this.parent.ctx.restore();
 		};
 			
 		this.updateGap = function() {
