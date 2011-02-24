@@ -25,6 +25,8 @@ var canvasKurve;
 function CanvasKurve() { 
 
 	//Constants
+	this.SCORE_DIFF = 2;
+	
 	this.BORDER_WIDTH = 8;
 	this.FPS = 60;
 	this.INTERVAL = 1000/this.FPS;
@@ -77,6 +79,7 @@ function CanvasKurve() {
 	this.END_OF_ROUND = 2;
 	this.PAUSE_GAME = 3;
 	this.START_GAME = 4;
+	this.END_OF_GAME = 5;
 	//Constants for messages
 	this.MESSAGE_MIN_WIDTH  = 62;
 	this.MESSAGE_MIN_HEIGHT = 24;
@@ -162,6 +165,7 @@ function CanvasKurve() {
 	
 	this.startRound = function() {
 		this.numberOfSnakesAlive = this.snakes.length;
+		this.scoreToWin = (this.snakes.length-1)*10;
 		for(i in this.snakes) {
 			this.snakes[i].setInterval();
 		}
@@ -173,10 +177,10 @@ function CanvasKurve() {
 	}
 	
 	this.spacebarUp = function() {
-		if(this.numberOfSnakesAlive == 0) {
+		if(this.gamestate == this.END_OF_ROUND) {
 			this.initRound();
 			this.frame = 0;
-		} else if(this.numberOfSnakesAlive == -1) {
+		} else if(this.gamestate == this.START_GAME) {
 			this.startRound();
 		} else if(this.gamestate == this.PAUSE_GAME) {
 			this.gamestate = this.RUNNING_GAME;
@@ -213,13 +217,49 @@ function CanvasKurve() {
 	}
 	
 	this.endRound = function() {
-		this.gamestate = this.END_OF_ROUND;
 		clearInterval(this.snakes[i].intervalID);
 		clearInterval(this.intervalID);		// clear interval for the dots
-		this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
 		document.getElementById("toggle-button").disabled = false;
-		//Display message
-		this.setMessage();
+		
+		
+		var winner = this.checkWinner();
+		if(winner == false) {
+			this.gamestate = this.END_OF_ROUND;
+			this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
+		
+			//Display message
+			this.setMessage();
+		}
+		else {
+			this.gamestate = this.END_OF_GAME;
+			
+			this.endGame(winner);
+		}
+	}
+	
+	/**
+	 * Called at the end of a round if a player has won
+	 */
+	this.endGame = function(winner) {
+	}
+	
+	/**
+	 * Checks if there is a winner and returns the snake object of the winner or false
+	 */
+	this.checkWinner = function() {
+		var firstScore = this.scoreToWin;
+		var firstSnake = false;
+		var secondScore = 0;
+		for(i = 0; i < this.snakes.length; i++){
+			if(this.snakes[i].score >= firstScore) {
+				firstSnake = this.snakes[i];
+				firstScore = this.snakes[i].score;
+			}
+			else if(this.snakes[i].score >= secondScore) {
+				secondScore = this.snakes[i].score;
+			}
+		}
+		return (firstScore > (secondScore + this.SCORE_DIFF)) ? firstSnake : false;
 	}
 	
 	this.updateScoreBoard = function() {
@@ -234,9 +274,6 @@ function CanvasKurve() {
 			scoreHTML += '<tr style="color:'+sortedScoreArray[i][2]+'"><td>'+sortedScoreArray[i][1]+'</td><td>'+sortedScoreArray[i][0]+'</td></tr>';
 		}
 		document.getElementById('score-table').innerHTML = scoreHTML;
-		if(sortedScoreArray[0][0] >= ((this.snakes.length - 1) * 10) && sortScoreArray[0][0] - sortScoreArray[1][0] >= 2) {
-			//this.endGame()
-		}
 	}
 	
 	this.keyDown = function(e) {
@@ -297,6 +334,10 @@ function CanvasKurve() {
 		}
 		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
 	}
+	
+	/**
+	 * Checks if a certain pixel is solid
+	 */
 	this.isSolid = function(x, y) {
 		if(this.solid[x] == undefined) {
 			this.solid[x] = new Array();
@@ -304,11 +345,14 @@ function CanvasKurve() {
 		return (this.solid[x][y] == true) ? false : true;
 	}
 	
-	this.isSolid = function(x,y) {
-		if(this.solid[x] == undefined) {
-			this.solid[x] = new Array();
-		}
-		return (this.solid[x][y] == true) ? false : true;
+	/**
+	 * Paints specific pixels pink
+	 */
+	this.paintPink = function(x,y) {
+		this.ctxB.save();
+		this.ctxB.fillStyle = "pink";
+		this.ctxB.fillRect(x, y, 1, 1);
+		this.ctxB.restore();
 	}
 
 	
@@ -379,13 +423,6 @@ function CanvasKurve() {
 			this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
 		}
 		this.intervalMessage = window.setInterval(this.message.bind(this), this.INTERVAL);
-	}
-	
-	this.paintPink = function(x,y) {
-		this.ctxB.save();
-		this.ctxB.fillStyle = "pink";
-		this.ctxB.fillRect(x, y, 1, 1);
-		this.ctxB.restore();
 	}
 	
 	
