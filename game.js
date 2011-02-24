@@ -151,7 +151,6 @@ function CanvasKurve() {
 			this.snakes[i].resetToRandomPosition();
 			this.snakes[i].startStep();
 		}
-		this.numberOfSnakesAlive = -1;
 		this.updateScoreBoard();
 		this.gamestate = this.START_GAME;
 		
@@ -173,10 +172,10 @@ function CanvasKurve() {
 	}
 	
 	this.spacebarUp = function() {
-		if(this.numberOfSnakesAlive == 0) {
+		if(this.gamestate == this.END_OF_ROUND) {
 			this.initRound();
 			this.frame = 0;
-		} else if(this.numberOfSnakesAlive == -1) {
+		} else if(this.gamestate == this.START_GAME) {
 			this.startRound();
 		} else if(this.gamestate == this.PAUSE_GAME) {
 			this.gamestate = this.RUNNING_GAME;
@@ -216,7 +215,6 @@ function CanvasKurve() {
 		this.gamestate = this.END_OF_ROUND;
 		clearInterval(this.snakes[i].intervalID);
 		clearInterval(this.intervalID);		// clear interval for the dots
-		this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
 		document.getElementById("toggle-button").disabled = false;
 		//Display message
 		this.setMessage();
@@ -297,6 +295,10 @@ function CanvasKurve() {
 		}
 		return (this.solid[x][y] == true) ? false : this.solid[x][y] = true;
 	}
+	
+	/**
+	 * Checks if a certain pixel is solid
+	 */
 	this.isSolid = function(x, y) {
 		if(this.solid[x] == undefined) {
 			this.solid[x] = new Array();
@@ -304,11 +306,14 @@ function CanvasKurve() {
 		return (this.solid[x][y] == true) ? false : true;
 	}
 	
-	this.isSolid = function(x,y) {
-		if(this.solid[x] == undefined) {
-			this.solid[x] = new Array();
-		}
-		return (this.solid[x][y] == true) ? false : true;
+	/**
+	 * Paints specific pixels pink
+	 */
+	this.paintPink = function(x,y) {
+		this.ctxB.save();
+		this.ctxB.fillStyle = "pink";
+		this.ctxB.fillRect(x, y, 1, 1);
+		this.ctxB.restore();
 	}
 
 	
@@ -379,13 +384,6 @@ function CanvasKurve() {
 			this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
 		}
 		this.intervalMessage = window.setInterval(this.message.bind(this), this.INTERVAL);
-	}
-	
-	this.paintPink = function(x,y) {
-		this.ctxB.save();
-		this.ctxB.fillStyle = "pink";
-		this.ctxB.fillRect(x, y, 1, 1);
-		this.ctxB.restore();
 	}
 	
 	
