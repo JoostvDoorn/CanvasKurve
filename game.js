@@ -223,17 +223,20 @@ function CanvasKurve() {
 	}
 	
 	this.updateScoreBoard = function() {
-		this.sortedScoreArray = new Array();
+		sortedScoreArray = new Array();
 		for(i in this.snakes) {
-			this.sortedScoreArray[i] = new Array(this.snakes[i].score,this.snakes[i].name, this.snakes[i].color);
+			sortedScoreArray[i] = new Array(this.snakes[i].score, this.snakes[i].name, this.snakes[i].color);
 		}
-		this.scoreHTML = '';
-		this.sortedScoreArray.sort(function(a,b){return b[0] - a[0];});
-		for(i in this.sortedScoreArray)
+		scoreHTML = '';
+		sortedScoreArray.sort(function(a,b){return b[0] - a[0];});
+		for(i in sortedScoreArray)
 		{
-			this.scoreHTML += '<tr style="color:'+this.sortedScoreArray[i][2]+'"><td>'+this.sortedScoreArray[i][1]+'</td><td>'+this.sortedScoreArray[i][0]+'</td></tr>';
+			scoreHTML += '<tr style="color:'+sortedScoreArray[i][2]+'"><td>'+sortedScoreArray[i][1]+'</td><td>'+sortedScoreArray[i][0]+'</td></tr>';
 		}
-		document.getElementById('score-table').innerHTML = this.scoreHTML;
+		document.getElementById('score-table').innerHTML = scoreHTML;
+		if(sortedScoreArray[0][0] >= ((this.snakes.length - 1) * 10) && sortScoreArray[0][0] - sortScoreArray[1][0] >= 2) {
+			//this.endGame()
+		}
 	}
 	
 	this.keyDown = function(e) {
