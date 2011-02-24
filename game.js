@@ -40,7 +40,7 @@ function CanvasKurve() {
 	this.MIN_GAP_SPACING = 2 * this.FPS * this.SPEED; //2 is number of seconds
 	this.MAX_GAP_SPACING = 2 * this.MIN_GAP_SPACING;
 	//Glow constants
-	this.GLOW = true; // Turns glow on or off
+	this.GLOW = false; // Turns glow on or off
 	this.GLOW_COUNT = 10; // Higher glow count gives a better quality glow
 	this.GLOW_ALPHA = 0.02; // Should be at least 0.05 otherwise it will look different in firefox
 	this.GLOW_WIDTH = 20;
@@ -71,13 +71,27 @@ function CanvasKurve() {
 	//Main game colors
 	this.BACKGROUND_COLOR = "black";
 	this.BORDER_COLOR = "#EBE54D";
+	//Constants for game state
+	this.MENU = 0;
+	this.RUNNING_GAME = 1;
+	this.END_OF_ROUND = 2;
+	this.PAUSE_GAME = 3;
+	this.START_GAME = 4;
+	//Constants for messages
+	this.MESSAGE_MIN_WIDTH  = 62;
+	this.MESSAGE_MIN_HEIGHT = 24;
+	
+	this.SECONDS_TO_MESSAGE = 2*Math.PI; //Seconds in multiple of 2*Math.PI
 	//An array with the colors currently used
+	this.focus = true; //Records if the game still has focus
 	this.colors;
 	this.intervalID;
 	this.canvas;
 	this.background;
 	this.ctx;                       //foreground contex
 	this.ctxB;                      // background context
+	this.frame = 0; //Counts frames
+	this.gamestate = this.MENU;
 	// Stores players and their snakes
 	this.snakes = new Array();
 	this.numberOfSnakesAlive;
@@ -111,11 +125,13 @@ function CanvasKurve() {
 		//this.addRandomSnake("Nick", 0, 38, 40, "orange");	// up down
 		//this.addRandomSnake("Thomas", 0, 65, 83, "#08e000");	// a s
 		//this.addRandomSnake("Joost", 0, 37, 39, "red");		// left right
-		
+		//Add random snakes to the game
 		for(i = 0; i < 8; i++) {
 			this.addRandomSnake("Speler " + i, 0, 37, 39, this.colors[i]);
 		}
-		
+		//Set the message for the first game
+		this.setMessage(true);
+		//Start the round
 		this.initRound();
 	}
 	
@@ -135,9 +151,12 @@ function CanvasKurve() {
 			this.snakes[i].resetToRandomPosition();
 			this.snakes[i].startStep();
 		}
-		this.drawDots();
 		this.numberOfSnakesAlive = -1;
 		this.updateScoreBoard();
+		this.gamestate = this.START_GAME;
+		
+		//Reset frame locks
+		this.dotsLock = false;
 		
 	}
 	
@@ -148,15 +167,25 @@ function CanvasKurve() {
 		}
 		document.getElementById("toggle-button").disabled = true;
 		this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
+		this.gamestate = this.RUNNING_GAME;
+		//Stop displaying the spacebar message
+		clearInterval(this.intervalMessage);
 	}
 	
 	this.spacebarUp = function() {
 		if(this.numberOfSnakesAlive == 0) {
 			this.initRound();
+			this.frame = 0;
 		} else if(this.numberOfSnakesAlive == -1) {
 			this.startRound();
+		} else if(this.gamestate == this.PAUSE_GAME) {
+			this.gamestate = this.RUNNING_GAME;
+			this.intervalID = window.setInterval(this.drawDots.bind(this), this.INTERVAL);
+			clearInterval(this.intervalMessage);
 		} else {
-			//this.pause();
+			this.gamestate = this.PAUSE_GAME;
+			clearInterval(this.intervalID);
+			this.setMessage(true);
 		}
 	}
 	
@@ -176,14 +205,21 @@ function CanvasKurve() {
 			if(!this.snakes[i].isDead) {
 				this.snakes[i].score++;					// give point to living players
 				if(this.numberOfSnakesAlive <= 1) {     // kill last snake
-					clearInterval(this.snakes[i].intervalID);
-					clearInterval(this.intervalID);		// clear interval for the dots
-					this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
-					document.getElementById("toggle-button").disabled = false;
+					this.endRound();
 				}
 			}
 		}
 		this.updateScoreBoard();
+	}
+	
+	this.endRound = function() {
+		this.gamestate = this.END_OF_ROUND;
+		clearInterval(this.snakes[i].intervalID);
+		clearInterval(this.intervalID);		// clear interval for the dots
+		this.numberOfSnakesAlive = 0;		// gamestate = END_OF_ROUND
+		document.getElementById("toggle-button").disabled = false;
+		//Display message
+		this.setMessage();
 	}
 	
 	this.updateScoreBoard = function() {
@@ -217,9 +253,13 @@ function CanvasKurve() {
 	}
 	
 	this.drawDots = function() {
-		this.canvas.width = this.canvas.width;
-		for(snake in this.snakes) {
-			this.snakes[snake].drawDot();
+		if(this.dotsLock != true) {
+			this.dotsLock = true;
+			this.canvas.width = this.canvas.width;
+			for(snake in this.snakes) {
+				this.snakes[snake].drawDot();
+			}
+			this.dotsLock = false;
 		}
 	}
 	
@@ -267,6 +307,76 @@ function CanvasKurve() {
 		}
 		return (this.solid[x][y] == true) ? false : true;
 	}
+
+	
+	this.message = function() {
+		//Only draw anything if not completely transparent
+		var alpha = 0;
+		if((this.frame/this.FPS)>=this.SECONDS_TO_MESSAGE) {
+			alpha = 0.5-Math.cos(this.frame/this.FPS)/2;
+		}
+		
+		if((alpha != 0 && this.focus == true) || this.frame == 0) {
+			
+			//Make sure the dots are drawn
+			this.drawDots();
+			
+			//Display message
+			this.ctx.save();
+			this.ctx.strokeStyle = "white";
+			this.ctx.fillStyle = "white";
+			this.ctx.font = "10pt Arial";
+			this.ctx.lineWidth = 2;
+			this.ctx.lineCap = "butt";
+			
+			var text;
+			
+			switch(this.gamestate)
+			{
+			case this.START_GAME:
+				text = "Press spacebar to start the next round";
+				break;
+			case this.END_OF_ROUND:
+				text = "Press spacebar to continue";
+				break;
+			case this.PAUSE_GAME:
+				text = "Paused, press spacebar to continue";
+				break;
+			default:
+				text = "";
+			}
+			
+			
+			var width = this.MESSAGE_MIN_WIDTH;
+			var height = this.MESSAGE_MIN_HEIGHT;
+			width += this.ctx.measureText(text).width;
+			
+			var x = parseInt((this.background.width-width)/2);
+			var y = parseInt((this.background.height-height)/2);
+			this.ctx.globalAlpha = alpha;
+			this.ctx.beginPath();
+			this.ctx.moveTo(x+50,y+16);
+			this.ctx.fillText("Space", x+3, y+15);
+			this.ctx.fillText(text, x+65, y+16);
+			this.ctx.arc(x+45,y+16,5,0,Math.PI*.5,false);
+			this.ctx.arc(x+0,y+16,5,Math.PI*.5,Math.PI,false);
+			this.ctx.arc(x+0,y+6,5,Math.PI,Math.PI*1.5,false);
+			this.ctx.arc(x+45,y+6,5,Math.PI*1.5,Math.PI*2,false);
+			//this.ctx.lineTo(60,25);
+			this.ctx.closePath();
+			this.ctx.stroke();
+			this.ctx.restore();
+		}
+		this.frame++;
+	}
+	
+	this.setMessage = function(display) {
+		this.frame = 0;
+		if(display == true) {
+			this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
+		}
+		this.intervalMessage = window.setInterval(this.message.bind(this), this.INTERVAL);
+	}
 	
 	this.paintPink = function(x,y) {
 		this.ctxB.save();
@@ -274,6 +384,8 @@ function CanvasKurve() {
 		this.ctxB.fillRect(x, y, 1, 1);
 		this.ctxB.restore();
 	}
+	
+	
 	
 	this.Snake = function(parent, name, score, left, right, x, y, angle, color) {
 	
@@ -296,24 +408,26 @@ function CanvasKurve() {
 		
 		
 		this.update = function() {
-			this.difx = this.SPEED*Math.cos(this.angle);
-			this.dify = this.SPEED*Math.sin(this.angle);
-			var extraWideBorder = 3;
-			if(!this.isGap) {
-				this.drawSnake(1.0, 1);
-				if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false ||
-						this.x < this.BORDER_WIDTH + extraWideBorder ||
-						this.y < this.BORDER_WIDTH + extraWideBorder ||
-						this.x > this.parent.canvas.height - this.BORDER_WIDTH - extraWideBorder ||
-						this.y > this.parent.canvas.width - this.BORDER_WIDTH - extraWideBorder) {
-					clearInterval(this.intervalID);
-					this.isDead = true;
-					this.parent.updateScore(this);
+			if(this.parent.gamestate == this.parent.RUNNING_GAME) {
+				this.difx = this.SPEED*Math.cos(this.angle);
+				this.dify = this.SPEED*Math.sin(this.angle);
+				var extraWideBorder = 3;
+				if(!this.isGap) {
+					this.drawSnake(1.0, 1);
+					if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false ||
+							this.x < this.BORDER_WIDTH + extraWideBorder ||
+							this.y < this.BORDER_WIDTH + extraWideBorder ||
+							this.x > this.parent.canvas.height - this.BORDER_WIDTH - extraWideBorder ||
+							this.y > this.parent.canvas.width - this.BORDER_WIDTH - extraWideBorder) {
+						clearInterval(this.intervalID);
+						this.isDead = true;
+						this.parent.updateScore(this);
+					}
 				}
+				this.updateGap();
+				this.x += this.difx; this.y += this.dify;
+				this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 			}
-			this.updateGap();
-			this.x += this.difx; this.y += this.dify;
-			this.angle += this.direction*this.TURNING_SPEED*Math.PI;
 		};
 			
 		this.drawSnake = function(factorForwards, factorBackwards) {
@@ -344,15 +458,6 @@ function CanvasKurve() {
 					this.parent.ctxB.globalCompositeOperation = "source-over";
 					this.parent.ctxB.stroke();
 					this.parent.ctxB.restore();
-					// this.parent.ctxB.save();
-					// this.parent.ctxB.beginPath();
-					// this.parent.ctxB.fillStyle= this.color;
-					// this.parent.ctxB.arc(this.x, this.y, this.parent.LINE_WIDTH + i/(this.parent.GLOW_COUNT)*this.parent.GLOW_WIDTH, 0, Math.PI*2, true); 
-					// this.parent.ctxB.closePath();
-					// this.parent.ctxB.globalAlpha = this.parent.GLOW_ALPHA;
-					// this.parent.ctxB.globalCompositeOperation = "source-over";
-					// this.parent.ctxB.fill();
-					// this.parent.ctxB.restore();
 				}
 			}
 		};
@@ -437,6 +542,8 @@ function CanvasKurve() {
 		this.registerKeys(left, right);
 	};
 
+	addEvent(window, 'focus', (function() {this.focus=true;}).bind(this)); 
+	addEvent(window, 'blur', (function() {this.focus=false;}).bind(this)); 
 	addEvent(window, 'keydown', this.keyDown.bind(this)); 
 	addEvent(window, 'keyup', this.keyUp.bind(this)); 
 	this.init();
