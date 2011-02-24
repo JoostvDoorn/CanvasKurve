@@ -432,6 +432,15 @@ function CanvasKurve() {
 		var alpha = 0;
 		if((this.frame/this.FPS)>=this.SECONDS_TO_MESSAGE) {
 			alpha = 0.5-Math.cos(this.frame/this.FPS)/2;
+			if(alpha > 0.95) {
+				//Only fade in once
+				clearInterval(this.intervalMessage);
+				alpha = 1;
+			}
+		}
+		
+		if(this.gamestate == this.GAME_PAUSED) {
+			this.frame += 10;
 		}
 		
 		if((alpha != 0 && this.focus == true) || this.frame == 0) {
