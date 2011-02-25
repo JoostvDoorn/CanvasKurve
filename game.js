@@ -161,6 +161,8 @@ function CanvasKurve() {
 		this.updateScoreBoard();
 		this.gamestate = this.ROUND_INITIATED;
 		
+		this.setMessage();
+		
 		//Reset frame locks
 		this.dotsLock = false;
 		
@@ -502,6 +504,7 @@ function CanvasKurve() {
 		if(display == true) {
 			this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
 		}
+		clearInterval(this.intervalMessage);
 		this.intervalMessage = window.setInterval(this.message.bind(this), this.INTERVAL);
 	}
 	
