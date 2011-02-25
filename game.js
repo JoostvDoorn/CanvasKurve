@@ -500,12 +500,14 @@ function CanvasKurve() {
 	}
 	
 	this.setMessage = function(display) {
-		this.frame = 0;
-		if(display == true) {
-			this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
+		if(this.gamestate != this.RUNNING_GAME) {
+			this.frame = 0;
+			if(display == true) {
+				this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
+			}
+			clearInterval(this.intervalMessage);
+			this.intervalMessage = window.setInterval(this.message.bind(this), this.INTERVAL);
 		}
-		clearInterval(this.intervalMessage);
-		this.intervalMessage = window.setInterval(this.message.bind(this), this.INTERVAL);
 	}
 	
 	
@@ -667,7 +669,7 @@ function CanvasKurve() {
 		this.registerKeys(left, right);
 	};
 
-	addEvent(window, 'focus', (function() {this.focus=true;}).bind(this)); 
+	addEvent(window, 'focus', (function() {this.focus=true;this.setMessage();this.frame=this.SECONDS_TO_MESSAGE*this.FPS+this.FPS*Math.PI;}).bind(this)); 
 	addEvent(window, 'blur', (function() {this.focus=false;}).bind(this)); 
 	addEvent(window, 'keydown', this.keyDown.bind(this)); 
 	addEvent(window, 'keyup', this.keyUp.bind(this)); 
