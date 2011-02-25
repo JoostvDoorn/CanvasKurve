@@ -152,7 +152,7 @@ function CanvasKurve() {
 		this.ctxB.fillStyle = this.BACKGROUND_COLOR;
 		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
 		
-		
+		this.setMessage((this.gamestate == 0));
 		this.solid = new Array();
 		for(i in this.snakes) {
 			this.snakes[i].resetToRandomPosition();
@@ -160,8 +160,6 @@ function CanvasKurve() {
 		}
 		this.updateScoreBoard();
 		this.gamestate = this.ROUND_INITIATED;
-		
-		this.setMessage();
 		
 		//Reset frame locks
 		this.dotsLock = false;
@@ -447,54 +445,58 @@ function CanvasKurve() {
 		
 		if((alpha != 0 && this.focus == true) || this.frame == 0) {
 			
-			//Make sure the dots are drawn
-			this.drawDots();
-			
-			//Display message
-			this.ctx.save();
-			this.ctx.strokeStyle = "white";
-			this.ctx.fillStyle = "white";
-			this.ctx.font = "10pt Arial";
-			this.ctx.lineWidth = 2;
-			this.ctx.lineCap = "butt";
-			
 			var text;
 			
 			switch(this.gamestate)
 			{
-			case this.ROUND_INITIATED:
-				text = "Press spacebar to start the next round";
-				break;
-			case this.ROUND_ENDED:
-				text = "Press spacebar to continue";
-				break;
-			case this.GAME_PAUSED:
-				text = "Paused, press spacebar to continue";
-				break;
-			default:
-				text = "";
+				case this.ROUND_INITIATED:
+					text = "Press spacebar to start the next round";
+					break;
+				case this.ROUND_ENDED:
+					text = "Press spacebar to continue";
+					break;
+				case this.GAME_PAUSED:
+					text = "Paused, press spacebar to continue";
+					break;
+				default:
+					text = "";
 			}
 			
+			if(text!="") {
 			
-			var width = this.MESSAGE_MIN_WIDTH;
-			var height = this.MESSAGE_MIN_HEIGHT;
-			width += this.ctx.measureText(text).width;
-			
-			var x = parseInt((this.background.width-width)/2);
-			var y = parseInt((this.background.height-height)/2);
-			this.ctx.globalAlpha = alpha;
-			this.ctx.beginPath();
-			this.ctx.moveTo(x+50,y+16);
-			this.ctx.fillText("Space", x+3, y+15);
-			this.ctx.fillText(text, x+65, y+16);
-			this.ctx.arc(x+45,y+16,5,0,Math.PI*.5,false);
-			this.ctx.arc(x+0,y+16,5,Math.PI*.5,Math.PI,false);
-			this.ctx.arc(x+0,y+6,5,Math.PI,Math.PI*1.5,false);
-			this.ctx.arc(x+45,y+6,5,Math.PI*1.5,Math.PI*2,false);
-			//this.ctx.lineTo(60,25);
-			this.ctx.closePath();
-			this.ctx.stroke();
-			this.ctx.restore();
+				//Make sure the dots are drawn
+				this.drawDots();
+				
+				//Display message
+				this.ctx.save();
+				this.ctx.strokeStyle = "white";
+				this.ctx.fillStyle = "white";
+				this.ctx.font = "10pt Arial";
+				this.ctx.lineWidth = 2;
+				this.ctx.lineCap = "butt";
+				
+				
+				
+				var width = this.MESSAGE_MIN_WIDTH;
+				var height = this.MESSAGE_MIN_HEIGHT;
+				width += this.ctx.measureText(text).width;
+				
+				var x = parseInt((this.background.width-width)/2);
+				var y = parseInt((this.background.height-height)/2);
+				this.ctx.globalAlpha = alpha;
+				this.ctx.beginPath();
+				this.ctx.moveTo(x+50,y+16);
+				this.ctx.fillText("Space", x+3, y+15);
+				this.ctx.fillText(text, x+65, y+16);
+				this.ctx.arc(x+45,y+16,5,0,Math.PI*.5,false);
+				this.ctx.arc(x+0,y+16,5,Math.PI*.5,Math.PI,false);
+				this.ctx.arc(x+0,y+6,5,Math.PI,Math.PI*1.5,false);
+				this.ctx.arc(x+45,y+6,5,Math.PI*1.5,Math.PI*2,false);
+				//this.ctx.lineTo(60,25);
+				this.ctx.closePath();
+				this.ctx.stroke();
+				this.ctx.restore();
+			}
 		}
 		this.frame++;
 	}
