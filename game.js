@@ -59,7 +59,7 @@ function CanvasKurve() {
 								  '-1 Player'
 								  );
 	//Default controls (this makes it easy to fill the controls)
-	this.DEFAULT_CONTROLS = new Array(new Array(37, 39),
+	this.DEFAULT_CONTROLS = new Array(new Array(undefined, undefined),
 									  new Array(undefined, undefined),
 									  new Array(undefined, undefined),
 									  new Array(undefined, undefined),
@@ -113,9 +113,11 @@ function CanvasKurve() {
 	
 	this.SECONDS_TO_MESSAGE = 2*Math.PI; //Seconds in multiple of 2*Math.PI
 	
+	// Constants for menu design
 	this.MENU_NAMES_X = -200;
 	this.MENU_NAMES_Y = 200;
-	//Stores the string name of keys
+	this.MENU_FONT_SIZE = 22;
+	// Stores the string name of keys
 	this.keys = {
 				8: "BkSp",
 				9: "TAB",
@@ -180,6 +182,16 @@ function CanvasKurve() {
 		this.ctx = this.canvas.getContext("2d");
 		this.ctxB = this.background.getContext("2d");
 		
+		//Register events
+		addEvent(document.getElementById("toggle-button"), 'click',this.toggleCanvasSize.bind(this));
+	
+		addEvent(window, 'focus', (function() {this.focus=true;this.setMessage();this.frame=this.SECONDS_TO_MESSAGE*this.FPS+this.FPS*Math.PI;}).bind(this)); 
+		addEvent(window, 'blur', (function() {this.focus=false;}).bind(this)); 
+		addEvent(window, 'keydown', this.keyDown.bind(this)); 
+		addEvent(window, 'keyup', this.keyUp.bind(this)); 
+		addEvent(window, 'keypress', this.saveKeyEvent.bind(this)); 
+		addEvent(this.canvas, 'click', this.click.bind(this));
+		
 		//Register spacebar
 		this.inputUp[32] = new Array();
 		this.inputUp[32][this.inputUp[32].length] = this.spacebarUp.bind(this);
@@ -199,8 +211,15 @@ function CanvasKurve() {
 				this.addRandomSnake(this.names[i], 0, this.controls[i][0], this.controls[i][1], this.colors[i]);
 			}
 		}
-		//Start the round
-		this.initRound();
+		//Makes sure there are at least 2 snakes
+		if(this.snakes.length <= 1) {
+			//Return to menu
+			this.initMenu();
+		}
+		else {
+			//Start the round
+			this.initRound();
+		}
 	}
 	
 	/**
@@ -228,31 +247,47 @@ function CanvasKurve() {
 		img.src = 'banner.gif';
 		
 		this.ctx.save();
-		var fontSize = 22;
-		this.ctx.font = fontSize+"px \"Helvetica Neue\", Arial, Helvetica, sans-serif";
+		this.ctx.font = this.MENU_FONT_SIZE+"px \"Helvetica Neue\", Arial, Helvetica, sans-serif";
 		for(var i = 0; i<this.names.length; i++) {
 			this.ctx.fillStyle = this.colors[i];
 			this.ctx.globalAlpha = 1;
-			this.ctx.fillText(i+1, parseInt(this.canvas.width/2)+this.MENU_NAMES_X, this.MENU_NAMES_Y+fontSize*2*i);
+			this.ctx.fillText(i+1, parseInt(this.canvas.width/2)+this.MENU_NAMES_X, this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*i);
 			if(this.controlsSet(i) || (this.menustate == this.SET_CONTROLS && this.controls_playerSelected == i)) {
 				this.ctx.globalAlpha = 1;
-				this.ctx.fillText(this.keyToChar(this.controls[i][0]), parseInt(this.canvas.width/2)+this.MENU_NAMES_X+290, this.MENU_NAMES_Y+fontSize*2*i);
-				this.ctx.fillText(this.keyToChar(this.controls[i][1]), parseInt(this.canvas.width/2)+this.MENU_NAMES_X+360, this.MENU_NAMES_Y+fontSize*2*i);
+				this.ctx.fillText(this.keyToChar(this.controls[i][0]), parseInt(this.canvas.width/2)+this.MENU_NAMES_X+290, this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*i);
+				this.ctx.fillText(this.keyToChar(this.controls[i][1]), parseInt(this.canvas.width/2)+this.MENU_NAMES_X+360, this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*i);
 			} else {
 				this.ctx.globalAlpha = 0.5;
 			}
-			this.ctx.fillText(this.names[i], parseInt(this.canvas.width/2)+this.MENU_NAMES_X+30, this.MENU_NAMES_Y+fontSize*2*i);
+			this.ctx.fillText(this.names[i], parseInt(this.canvas.width/2)+this.MENU_NAMES_X+30, this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*i);
 		}
 		this.ctx.restore();
 	}
 	
+	this.click = function(e) {
+		for(var i = 0; i<this.names.length; i++) {
+			if((parseInt(this.canvas.width/2)+this.MENU_NAMES_X) <= event.layerX && event.layerX <= parseInt(this.canvas.width/2)+this.MENU_NAMES_X+370 &&
+				parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i-0.7)) <= event.layerY && event.layerY <= parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i+0.4))) {
+				this.setControls(i);
+				return false;
+			}
+		}
+	}
+	
 	/**
-	 * Sets the controls of a certain player
+	 * Sets the controls of a certain player, disables the controls if they're already set
 	 */
 	this.setControls = function(i) {
-		this.menustate = this.SET_CONTROLS;
-		this.controls_playerSelected = i;
-		this.controls_currentKey = 0;
+		// If controls are set disable them
+		if(this.controlsSet(i)) {
+			this.disableControls(i);
+		}
+		// Else start editing the controls
+		else {
+			this.menustate = this.SET_CONTROLS;
+			this.controls_playerSelected = i;
+			this.controls_currentKey = 0;
+		}
 		// Refresh menu
 		this.drawMenu();
 	}
@@ -274,6 +309,13 @@ function CanvasKurve() {
 		
 		// Refresh menu
 		this.drawMenu();
+	}
+	
+	/**
+	 * Disables the controls of a certain player
+	 */
+	this.disableControls = function(i) {
+		this.controls[i] = new Array(undefined, undefined);
 	}
 	
 	/**
@@ -902,13 +944,7 @@ function CanvasKurve() {
 		}
 	}
 
-	addEvent(document.getElementById("toggle-button"), 'click',this.toggleCanvasSize.bind(this));
-	
-	addEvent(window, 'focus', (function() {this.focus=true;this.setMessage();this.frame=this.SECONDS_TO_MESSAGE*this.FPS+this.FPS*Math.PI;}).bind(this)); 
-	addEvent(window, 'blur', (function() {this.focus=false;}).bind(this)); 
-	addEvent(window, 'keydown', this.keyDown.bind(this)); 
-	addEvent(window, 'keyup', this.keyUp.bind(this)); 
-	addEvent(window, 'keypress', this.saveKeyEvent.bind(this)); 
+
 	this.init();
 }
 function load() {
