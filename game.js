@@ -48,6 +48,16 @@ function CanvasKurve() {
 	this.GLOW_WIDTH = 20;
 	//Set to true to paint the solid points
 	this.PAINT_COLLISIONS = false;
+	//Default snake names
+	this.DEFAULT_NAMES = new Array('Greenlee',
+								  'Knucklehead',
+								  'Meister',
+								  'Mooiboy',
+								  'Pedobear',
+								  'Player 0',
+								  'NULLpointer',
+								  '-1 Player'
+								  );
 	//Default colors
 	this.DEFAULT_COLORS = new Array('#04cb04', //Green
 									'#0369c2', //Blue
@@ -89,6 +99,9 @@ function CanvasKurve() {
 	this.WINNER_VERTICAL_SPACING = 25;
 	
 	this.SECONDS_TO_MESSAGE = 2*Math.PI; //Seconds in multiple of 2*Math.PI
+	
+	this.MENU_NAMES_X = 80;
+	this.MENU_NAMES_Y = 200;
 	//An array with the colors currently used
 	this.focus = true; //Records if the game still has focus
 	this.colors;
@@ -99,6 +112,8 @@ function CanvasKurve() {
 	this.ctxB;                      // background context
 	this.frame = 0; //Counts frames
 	this.gamestate = this.MENU;
+	// Stores the names
+	this.names = this.DEFAULT_NAMES;
 	// Stores players and their snakes
 	this.snakes = new Array();
 	this.numberOfSnakesAlive;
@@ -108,7 +123,9 @@ function CanvasKurve() {
 	// Registers solid pixels
 	this.solid = new Array();
 	
-	
+	/**
+	 * Starts the game
+	 */
 	this.init = function() {
 		this.canvas = document.getElementById("canvas");
 		this.background = document.getElementById("background");
@@ -126,15 +143,19 @@ function CanvasKurve() {
 		//Register spacebar
 		this.inputUp[32] = new Array();
 		this.inputUp[32][this.inputUp[32].length] = this.spacebarUp.bind(this);
-
 		
-		//TODO: implement interface to create players and assign keys
-		//this.addRandomSnake("Nick", 0, 38, 40, "orange");	// up down
-		//this.addRandomSnake("Thomas", 0, 65, 83, "#08e000");	// a s
-		//this.addRandomSnake("Joost", 0, 37, 39, "red");		// left right
+		this.initMenu();
+	}
+	
+	/**
+	 * Starts a game
+	 */
+	this.initGame= function() {
+		//Reset context
+		this.ctx = this.canvas.getContext("2d");
 		//Add random snakes to the game
 		for(i = 0; i < 8; i++) {
-			this.addRandomSnake("Speler " + i, 0, 37, 39, this.colors[i]);
+			this.addRandomSnake(this.names[i], 0, 37, 39, this.colors[i]);
 		}
 		//Set the message for the first game
 		this.setMessage(true);
@@ -142,15 +163,41 @@ function CanvasKurve() {
 		this.initRound();
 	}
 	
+	/**
+	 * Starts the menu
+	 */
+	this.initMenu = function() {
+		// Prepare canvasses
+		this.canvas.width = this.canvas.width;
+		this.background.width = this.background.width;
+		// Draw background
+		this.drawBackground();
+		var ctx = document.getElementById('canvas').getContext('2d');
+		var img = new Image();
+		img.onload = (function(){
+		  this.ctx.drawImage(img,0,0);
+		}).bind(this);
+		img.src = 'banner.gif';
+		
+		this.ctx.save();
+		var fontSize = 22;
+		this.ctx.font = fontSize+"px \"Helvetica Neue\", Arial, Helvetica, sans-serif";
+		for(var i = 0; i<this.names.length; i++) {
+			this.ctx.fillStyle = this.colors[i];
+			this.ctx.globalAlpha = 1;
+			this.ctx.fillText(i+1, this.MENU_NAMES_X, this.MENU_NAMES_Y+fontSize*2*i);
+			this.ctx.globalAlpha = 0.5;
+			this.ctx.fillText(this.names[i], this.MENU_NAMES_X+30, this.MENU_NAMES_Y+fontSize*2*i);
+		}
+		this.ctx.restore();
+	}
+	
 	this.initRound = function() {
 		// Prepare canvasses
 		this.canvas.width = this.canvas.width;
 		this.background.width = this.background.width;
 		this.ctx.fillStyle = this.BACKGROUND_COLOR;
-		this.ctxB.fillStyle = this.BORDER_COLOR;
-		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
-		this.ctxB.fillStyle = this.BACKGROUND_COLOR;
-		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
+		this.drawBackground();
 		
 		this.setMessage((this.gamestate == 0));
 		this.solid = new Array();
@@ -179,8 +226,21 @@ function CanvasKurve() {
 		clearInterval(this.intervalMessage);
 	}
 	
+	/**
+	 * Draws the background with a border
+	 */
+	this.drawBackground = function() {
+		this.ctxB.fillStyle = this.BORDER_COLOR;
+		this.ctxB.fillRect(0,0,this.background.width,this.background.height);
+		this.ctxB.fillStyle = this.BACKGROUND_COLOR;
+		this.ctxB.fillRect(this.BORDER_WIDTH,this.BORDER_WIDTH,this.background.width-2*this.BORDER_WIDTH,this.background.height-2*this.BORDER_WIDTH);
+	}
+	
 	this.spacebarUp = function() {
 		switch(this.gamestate) {
+		case this.MENU:
+			this.initGame();
+			break;
 		case this.ROUND_INITIATED:
 			this.startRound();
 			break;
@@ -200,7 +260,7 @@ function CanvasKurve() {
 			break;
 		case this.GAME_ENDED:
 			this.gamestate = this.MENU;
-			this.initGame();
+			this.initMenu();
 			break;
 		}
 	}
@@ -303,13 +363,6 @@ function CanvasKurve() {
 		this.ctx.restore();
 		
 		this.ctx.restore();
-	}
-	
-	/**
-	 * Draws the Menu etc.
-	 */
-	this.initGame = function() {
-	
 	}
 	
 	/**
@@ -521,7 +574,7 @@ function CanvasKurve() {
 	}
 	
 	this.setMessage = function(display) {
-		if(this.gamestate != this.RUNNING_GAME) {
+		if(this.gamestate != this.RUNNING_GAME && this.gamestate != this.MENU) {
 			this.frame = 0;
 			if(display == true) {
 				this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
@@ -690,6 +743,48 @@ function CanvasKurve() {
 		this.registerKeys(left, right);
 	};
 
+	this.toggleCanvasSize = function() {
+		var canvasContainer = document.getElementById('canvas-container');
+		if(canvas.width == 600){
+			this.background.width = this.background.height = this.canvas.width = this.canvas.height = canvasContainer.width = canvasContainer.height = 800;
+			document.getElementById('container').style.width='950px';
+			document.getElementById('game-bar').style.height='780px';
+			this.drawState();
+		} else {
+			this.background.width = this.background.height = this.canvas.width = this.canvas.height = canvasContainer.width = canvasContainer.height = 600;
+			document.getElementById('container').style.width='750px';
+			document.getElementById('game-bar').style.height='580px';
+			this.drawState();
+		}
+	}
+	
+	
+	/**
+	 * Initialises the current state
+	 */
+	this.drawState = function() {
+		
+		switch(this.gamestate) {
+		case this.ROUND_INITIATED:
+			this.initRound();
+			break;
+		case this.GAME_PAUSED:
+			this.initRound();
+			break;
+		case this.RUNNING_GAME:
+			this.initRound();
+			break;
+		case this.ROUND_ENDED:
+			this.initRound();
+			break;
+		default:
+			this.initMenu();
+			break;
+		}
+	}
+
+	addEvent(document.getElementById("toggle-button"), 'click',this.toggleCanvasSize.bind(this));
+	
 	addEvent(window, 'focus', (function() {this.focus=true;this.setMessage();this.frame=this.SECONDS_TO_MESSAGE*this.FPS+this.FPS*Math.PI;}).bind(this)); 
 	addEvent(window, 'blur', (function() {this.focus=false;}).bind(this)); 
 	addEvent(window, 'keydown', this.keyDown.bind(this)); 
