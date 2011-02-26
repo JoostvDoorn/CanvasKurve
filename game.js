@@ -203,6 +203,8 @@ function CanvasKurve() {
 	 * Starts a game
 	 */
 	this.initGame = function() {
+		//Reset snakes
+		this.snakes = new Array();
 		//Reset context
 		this.ctx = this.canvas.getContext("2d");
 		//Add random snakes to the game
