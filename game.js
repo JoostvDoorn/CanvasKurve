@@ -30,8 +30,8 @@ function CanvasKurve() {
 	this.BORDER_WIDTH = 8;
 	this.FPS = 30;
 	this.INTERVAL = 1000/this.FPS;
-	this.SPEED = 2/36*this.INTERVAL;
-	this.TURNING_SPEED = 1/1200*this.INTERVAL;
+	this.SPEED = 3/36*this.INTERVAL;
+	this.TURNING_SPEED = 1/80*this.SPEED;
 	this.LEFT = -1;
 	this.RIGHT = 1;
 	this.STRAIGHT = 0;
