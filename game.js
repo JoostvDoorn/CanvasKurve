@@ -267,11 +267,13 @@ function CanvasKurve() {
 	}
 	
 	this.click = function(e) {
-		for(var i = 0; i<this.names.length; i++) {
-			if((parseInt(this.canvas.width/2)+this.MENU_NAMES_X) <= event.layerX && event.layerX <= parseInt(this.canvas.width/2)+this.MENU_NAMES_X+370 &&
-				parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i-0.7)) <= event.layerY && event.layerY <= parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i+0.4))) {
-				this.setControls(i);
-				return false;
+		if(this.gamestate == this.MENU) {
+			for(var i = 0; i<this.names.length; i++) {
+				if((parseInt(this.canvas.width/2)+this.MENU_NAMES_X) <= event.layerX && event.layerX <= parseInt(this.canvas.width/2)+this.MENU_NAMES_X+370 &&
+					parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i-0.7)) <= event.layerY && event.layerY <= parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i+0.4))) {
+					this.setControls(i);
+					return false;
+				}
 			}
 		}
 	}
