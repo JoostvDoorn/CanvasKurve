@@ -266,7 +266,7 @@ function CanvasKurve() {
 		this.ctx.restore();
 	}
 	
-	this.click = function(e) {
+	this.click = function(event) {
 		if(this.gamestate == this.MENU) {
 			for(var i = 0; i<this.names.length; i++) {
 				if((parseInt(this.canvas.width/2)+this.MENU_NAMES_X) <= event.layerX && event.layerX <= parseInt(this.canvas.width/2)+this.MENU_NAMES_X+370 &&
@@ -910,7 +910,7 @@ function CanvasKurve() {
 
 	this.toggleCanvasSize = function() {
 		var canvasContainer = document.getElementById('canvas-container');
-		if(canvas.width == 600){
+		if(this.canvas.width == 600){
 			this.background.width = this.background.height = this.canvas.width = this.canvas.height = canvasContainer.width = canvasContainer.height = 800;
 			document.getElementById('container').style.width='950px';
 			document.getElementById('game-bar').style.height='780px';
