@@ -58,6 +58,16 @@ function CanvasKurve() {
 								  'NULLpointer',
 								  '-1 Player'
 								  );
+	//Default controls (this makes it easy to fill the controls)
+	this.DEFAULT_CONTROLS = new Array(new Array(37, 39),
+									  new Array(undefined, undefined),
+									  new Array(undefined, undefined),
+									  new Array(undefined, undefined),
+									  new Array(undefined, undefined),
+									  new Array(undefined, undefined),
+									  new Array(undefined, undefined),
+									  new Array(undefined, undefined)
+									  );
 	//Default colors
 	this.DEFAULT_COLORS = new Array('#04cb04', //Green
 									'#0369c2', //Blue
@@ -80,28 +90,54 @@ function CanvasKurve() {
 								 '#ffffff', //White
 								 '#b668ff'  //Purple
 								 );
-	//Main game colors
+	// Main game colors
 	this.BACKGROUND_COLOR = "black";
 	this.BORDER_COLOR = "#EBE54D";
-	//Constants for game state
+	// Constants for game state
 	this.MENU = 0;
 	this.RUNNING_GAME = 1;
 	this.ROUND_ENDED = 2;
 	this.GAME_PAUSED = 3;
 	this.ROUND_INITIATED = 4;
 	this.GAME_ENDED = 5;
-	//Constants for messages
+	// Constants for the game state
+	this.MENU_START = 0;
+	this.SET_CONTROLS = 1;
+	// Constants for messages
 	this.MESSAGE_MIN_WIDTH  = 62;
 	this.MESSAGE_MIN_HEIGHT = 24;
-	//Constans for winner message
+	// Constans for winner message
 	this.WINNER_MIN_WIDTH = 50;
 	this.WINNER_MIN_HEIGHT = 50;
 	this.WINNER_VERTICAL_SPACING = 25;
 	
 	this.SECONDS_TO_MESSAGE = 2*Math.PI; //Seconds in multiple of 2*Math.PI
 	
-	this.MENU_NAMES_X = 80;
+	this.MENU_NAMES_X = -200;
 	this.MENU_NAMES_Y = 200;
+	//Stores the string name of keys
+	this.keys = {
+				8: "BkSp",
+				9: "TAB",
+				16: "SHIFT",
+				17: "CTR",
+				18: "ALT",
+				19: "PsBr",
+				20: "CpsL",
+				27: "Esc",
+				33: "PgUp",34: "PgDw", 35: "End", 36: "Home",
+				37: "LEFT",38: "UP",39: "RIGHT",40: "DOWN",
+				45: "Insr", 46: "DEL",
+				91: "OS",
+				93: "RMB",
+				112: "F1",113: "F2",114: "F3",115: "F4",116: "F5",117: "F6",118: "F7",119: "F8",120: "F9",121: "F10",122: "F11",123: "F12",
+				144: "NmL",
+				145: "ScL",
+				173: "Mute",174: "VoUp",175: "VoDo",
+				183: "Calc",
+				255: "Esc",
+				undefined: ""
+			   };
 	//An array with the colors currently used
 	this.focus = true; //Records if the game still has focus
 	this.colors;
@@ -112,8 +148,11 @@ function CanvasKurve() {
 	this.ctxB;                      // background context
 	this.frame = 0; //Counts frames
 	this.gamestate = this.MENU;
+	this.menustate = this.MENU_START;
 	// Stores the names
 	this.names = this.DEFAULT_NAMES;
+	// Stores the controls
+	this.controls = this.DEFAULT_CONTROLS;
 	// Stores players and their snakes
 	this.snakes = new Array();
 	this.numberOfSnakesAlive;
@@ -122,6 +161,7 @@ function CanvasKurve() {
 	this.inputDown = new Array();
 	// Registers solid pixels
 	this.solid = new Array();
+	
 	
 	/**
 	 * Starts the game
@@ -150,15 +190,15 @@ function CanvasKurve() {
 	/**
 	 * Starts a game
 	 */
-	this.initGame= function() {
+	this.initGame = function() {
 		//Reset context
 		this.ctx = this.canvas.getContext("2d");
 		//Add random snakes to the game
 		for(i = 0; i < 8; i++) {
-			this.addRandomSnake(this.names[i], 0, 37, 39, this.colors[i]);
+			if(this.controlsSet(i)) {
+				this.addRandomSnake(this.names[i], 0, this.controls[i][0], this.controls[i][1], this.colors[i]);
+			}
 		}
-		//Set the message for the first game
-		this.setMessage(true);
 		//Start the round
 		this.initRound();
 	}
@@ -167,6 +207,14 @@ function CanvasKurve() {
 	 * Starts the menu
 	 */
 	this.initMenu = function() {
+		this.menustate = this.MENU_START;
+		this.drawMenu();
+	}
+	
+	/**
+	 * Draws the menu
+	 */
+	this.drawMenu = function() {
 		// Prepare canvasses
 		this.canvas.width = this.canvas.width;
 		this.background.width = this.background.width;
@@ -175,7 +223,7 @@ function CanvasKurve() {
 		var ctx = document.getElementById('canvas').getContext('2d');
 		var img = new Image();
 		img.onload = (function(){
-		  this.ctx.drawImage(img,0,0);
+		  this.ctx.drawImage(img,parseInt(this.canvas.width/2)-img.width/2,0);
 		}).bind(this);
 		img.src = 'banner.gif';
 		
@@ -185,11 +233,74 @@ function CanvasKurve() {
 		for(var i = 0; i<this.names.length; i++) {
 			this.ctx.fillStyle = this.colors[i];
 			this.ctx.globalAlpha = 1;
-			this.ctx.fillText(i+1, this.MENU_NAMES_X, this.MENU_NAMES_Y+fontSize*2*i);
-			this.ctx.globalAlpha = 0.5;
-			this.ctx.fillText(this.names[i], this.MENU_NAMES_X+30, this.MENU_NAMES_Y+fontSize*2*i);
+			this.ctx.fillText(i+1, parseInt(this.canvas.width/2)+this.MENU_NAMES_X, this.MENU_NAMES_Y+fontSize*2*i);
+			if(this.controlsSet(i) || (this.menustate == this.SET_CONTROLS && this.controls_playerSelected == i)) {
+				this.ctx.globalAlpha = 1;
+				this.ctx.fillText(this.keyToChar(this.controls[i][0]), parseInt(this.canvas.width/2)+this.MENU_NAMES_X+290, this.MENU_NAMES_Y+fontSize*2*i);
+				this.ctx.fillText(this.keyToChar(this.controls[i][1]), parseInt(this.canvas.width/2)+this.MENU_NAMES_X+360, this.MENU_NAMES_Y+fontSize*2*i);
+			} else {
+				this.ctx.globalAlpha = 0.5;
+			}
+			this.ctx.fillText(this.names[i], parseInt(this.canvas.width/2)+this.MENU_NAMES_X+30, this.MENU_NAMES_Y+fontSize*2*i);
 		}
 		this.ctx.restore();
+	}
+	
+	/**
+	 * Sets the controls of a certain player
+	 */
+	this.setControls = function(i) {
+		this.menustate = this.SET_CONTROLS;
+		this.controls_playerSelected = i;
+		this.controls_currentKey = 0;
+		// Refresh menu
+		this.drawMenu();
+	}
+	
+	/**
+	 * Sets the control to the currently selected player
+	 */
+	this.setControl = function(keyCode) {
+		if(this.controls_playerSelected != undefined && this.controls[this.controls_playerSelected] != undefined && this.controls_currentKey < 2) {
+			this.controls[this.controls_playerSelected][this.controls_currentKey] = keyCode;
+		}
+		
+		
+		this.controls_currentKey++;
+		
+		if(this.controls_currentKey == 2) {
+			this.menustate = this.MENU_START;
+		}
+		
+		// Refresh menu
+		this.drawMenu();
+	}
+	
+	/**
+	 * Display the string representatiion of the controls
+	 */
+	this.keyToChar = function(keyCode) {
+		// Convert key to character
+		value = this.keys[keyCode] != undefined ? this.keys[keyCode] : "";
+		if((65<=keyCode && keyCode<=90) || (48<=keyCode && keyCode <= 57)) {
+			value = String.fromCharCode(keyCode);
+		}
+		return value;
+	}
+	
+	this.saveKey = function(keyCode) {
+		this.currentKeyCode = keyCode
+	}
+	
+	this.saveKeyEvent = function(e) {
+		if(this.keys[this.currentKeyCode] == undefined) {
+			this.keys[this.currentKeyCode] = String.fromCharCode(e.charCode);
+		}
+		return false;
+	}
+	
+	this.controlsSet = function(i) {
+		return (this.controls[i][0] != undefined && this.controls[i][1] != undefined);
 	}
 	
 	this.initRound = function() {
@@ -199,7 +310,7 @@ function CanvasKurve() {
 		this.ctx.fillStyle = this.BACKGROUND_COLOR;
 		this.drawBackground();
 		
-		this.setMessage((this.gamestate == 0));
+		this.setMessage((this.gamestate == this.MENU));
 		this.solid = new Array();
 		for(i in this.snakes) {
 			this.snakes[i].resetToRandomPosition();
@@ -405,7 +516,10 @@ function CanvasKurve() {
 			for(a in this.inputDown[e.keyCode]) {
 				this.inputDown[e.keyCode][a]();
 			}
+			return false;
 		}
+		// Saves the name of the key if needed
+		this.saveKey(e.keyCode);
 	}
 	
 	this.keyUp = function(e) {
@@ -413,6 +527,11 @@ function CanvasKurve() {
 			for(a in this.inputUp[e.keyCode]) {
 				this.inputUp[e.keyCode][a]();
 			}
+			return false;
+		}
+		if(this.gamestate == this.MENU && this.menustate == this.SET_CONTROLS) {
+			this.setControl(e.keyCode);
+			return false;
 		}
 	}
 	
@@ -496,7 +615,7 @@ function CanvasKurve() {
 			this.frame += 10;
 		}
 		
-		if((alpha != 0 && this.focus == true) || this.frame == 0) {
+		if(this.gamestate != this.MENU && ((alpha != 0 && this.focus == true) || this.frame == 0)) {
 			
 			var text;
 			
@@ -574,7 +693,7 @@ function CanvasKurve() {
 	}
 	
 	this.setMessage = function(display) {
-		if(this.gamestate != this.RUNNING_GAME && this.gamestate != this.MENU) {
+		if(this.gamestate != this.RUNNING_GAME) {
 			this.frame = 0;
 			if(display == true) {
 				this.frame = this.SECONDS_TO_MESSAGE*this.FPS;
@@ -789,6 +908,7 @@ function CanvasKurve() {
 	addEvent(window, 'blur', (function() {this.focus=false;}).bind(this)); 
 	addEvent(window, 'keydown', this.keyDown.bind(this)); 
 	addEvent(window, 'keyup', this.keyUp.bind(this)); 
+	addEvent(window, 'keypress', this.saveKeyEvent.bind(this)); 
 	this.init();
 }
 function load() {
