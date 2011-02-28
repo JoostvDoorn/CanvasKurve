@@ -655,6 +655,7 @@ function CanvasKurve() {
 	this.paintPink = function(x,y) {
 		this.ctxB.save();
 		this.ctxB.fillStyle = "pink";
+		this.ctxB.globalAlpha = 0.5;
 		this.ctxB.fillRect(x, y, 1, 1);
 		this.ctxB.restore();
 	}
@@ -793,6 +794,8 @@ function CanvasKurve() {
 				var extraWideBorder = 3;
 				if(!this.isGap) {
 					this.drawSnake(1.0, 1);
+				}
+				if(!this.isGap || this.gapSpacing < (-this.GAP_WIDTH + (this.SPEED*this.FPS/20))) {
 					if(this.parent.makeSolid(this.x,this.y, this.difx, this.dify, this.angle) == false ||
 							this.x < this.BORDER_WIDTH + extraWideBorder ||
 							this.y < this.BORDER_WIDTH + extraWideBorder ||
