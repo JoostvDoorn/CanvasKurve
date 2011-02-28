@@ -192,9 +192,7 @@ function CanvasKurve() {
 		addEvent(window, 'keypress', this.saveKeyEvent.bind(this)); 
 		addEvent(this.canvas, 'click', this.click.bind(this));
 		
-		//Register spacebar
-		this.inputUp[32] = new Array();
-		this.inputUp[32][this.inputUp[32].length] = this.spacebarUp.bind(this);
+		this.resetControls();
 		
 		this.initMenu();
 	}
@@ -228,6 +226,10 @@ function CanvasKurve() {
 	 * Starts the menu
 	 */
 	this.initMenu = function() {
+	
+		//Reset controls, otherwise you can't set controls
+		this.resetControls();
+	
 		this.menustate = this.MENU_START;
 		this.drawMenu();
 	}
@@ -279,6 +281,20 @@ function CanvasKurve() {
 	}
 	
 	/**
+	 * Clears all the snake controls
+	 */
+	this.resetControls = function() {
+	
+		//Reset
+		this.inputUp = new Array();
+		this.inputDown = new Array();
+		
+		//Register spacebar
+		this.inputUp[32] = new Array();
+		this.inputUp[32][this.inputUp[32].length] = this.spacebarUp.bind(this);
+	}
+	
+	/**
 	 * Sets the controls of a certain player, disables the controls if they're already set
 	 */
 	this.setControls = function(i) {
@@ -303,7 +319,6 @@ function CanvasKurve() {
 		if(this.controls_playerSelected != undefined && this.controls[this.controls_playerSelected] != undefined && this.controls_currentKey < 2) {
 			this.controls[this.controls_playerSelected][this.controls_currentKey] = keyCode;
 		}
-		
 		
 		this.controls_currentKey++;
 		
