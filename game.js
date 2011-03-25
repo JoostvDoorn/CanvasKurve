@@ -274,6 +274,7 @@ function CanvasKurve() {
 				if((parseInt(this.canvas.width/2)+this.MENU_NAMES_X) <= event.layerX && event.layerX <= parseInt(this.canvas.width/2)+this.MENU_NAMES_X+370 &&
 					parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i-0.7)) <= event.layerY && event.layerY <= parseInt(this.MENU_NAMES_Y+this.MENU_FONT_SIZE*2*(i+0.4))) {
 					this.setControls(i);
+					event.preventDefault();
 					return false;
 				}
 			}
@@ -357,6 +358,7 @@ function CanvasKurve() {
 		if(this.keys[this.currentKeyCode] == undefined) {
 			this.keys[this.currentKeyCode] = String.fromCharCode(e.charCode);
 		}
+		e.preventDefault();
 		return false;
 	}
 	
@@ -573,6 +575,7 @@ function CanvasKurve() {
 	}
 	
 	this.keyDown = function(e) {
+		e.preventDefault();
 		if(this.inputDown[e.keyCode]!=undefined) {
 			for(a in this.inputDown[e.keyCode]) {
 				this.inputDown[e.keyCode][a]();
@@ -584,6 +587,7 @@ function CanvasKurve() {
 	}
 	
 	this.keyUp = function(e) {
+		e.preventDefault();
 		if(this.inputUp[e.keyCode]!=undefined) {
 			for(a in this.inputUp[e.keyCode]) {
 				this.inputUp[e.keyCode][a]();
